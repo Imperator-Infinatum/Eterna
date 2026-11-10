@@ -76,3 +76,18 @@ This is a structural and rendering-quality milestone, not the final sculpted art
 - Increased grass patch density and introduced finer multi-frequency terrain undulation while preserving the road and village level relationships.
 
 The next review should specifically look for canopy overlap that hides the trunk silhouette, roots appearing to float on local slopes, buildings intersecting ground undulation, and excessive visual clutter near the path.
+
+
+## 0.3.2 — Visibility and distribution repair
+
+The 0.3.1 playtest screenshot exposed an important failure: vegetation silhouettes read as detached shrubs and spiky strands, with tree trunks and upper crown structure too weak to identify mature trees.
+
+Changes in this repair:
+- Leaf instance budget is distributed evenly over all branch/canopy anchors. The previous sequential allocation could exhaust the oak budget before upper branch anchors were processed.
+- Added foliage anchors along secondary limbs and primary crown branches, not just at a subset of terminal positions.
+- Increased broadleaf cluster scale and spread to improve canopy continuity at gameplay distance.
+- Increased the minimum visible trunk, root and branch radii, and raised the organic mesh sampling resolution so secondary limbs are not lost as sub-voxel details.
+- Bark is double-sided, has a clearer stylized brown value range, disables potentially incorrect frustum culling for this generated surface, and records vertex/triangle/bounds diagnostics.
+- Grass geometry is now made of three crossed curved ribbons per instance rather than one flat ribbon, and the patch density/capacity is increased.
+
+The screenshot review has not yet been repeated after this repair. Acceptance requires a new close/gameplay/far browser capture showing unmistakable trunk-to-branch continuity, readable tree species, and fuller 3D ground cover. This repair should not be described as visually accepted until that playtest is complete.

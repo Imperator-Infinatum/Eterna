@@ -97,7 +97,7 @@ function buildOakSkeleton(seed: number, height: number): { segments: TubeSegment
     new THREE.Vector3(random.range(-0.4, 0.4), height * 0.79, random.range(-0.34, 0.34)),
     new THREE.Vector3(random.range(-0.48, 0.48), height, random.range(-0.4, 0.4)),
   ];
-  const trunk = addTube(segments, trunkControls, 0.74, 0.115, 28, 0.26);
+  const trunk = addTube(segments, trunkControls, 0.94, 0.15, 32, 0.34);
 
   // Buttress roots start inside the trunk and flatten into the soil.
   const rootCount = random.int(6, 8);
@@ -114,7 +114,7 @@ function buildOakSkeleton(seed: number, height: number): { segments: TubeSegment
       radial.clone().multiplyScalar(length * 0.83).addScaledVector(tangent, sweep).setY(-0.08),
       radial.clone().multiplyScalar(length).addScaledVector(tangent, sweep * 1.2).setY(-0.19),
     ];
-    addTube(segments, points, random.range(0.36, 0.51), 0.035, 11, 0.24);
+    addTube(segments, points, random.range(0.44, 0.62), 0.045, 12, 0.30);
   }
 
   // Primary limbs originate at staggered heights and never share a repeated radial pattern.
@@ -140,7 +140,7 @@ function buildOakSkeleton(seed: number, height: number): { segments: TubeSegment
       start.clone().addScaledVector(radial, length * 0.68).addScaledVector(side, bend).add(new THREE.Vector3(0, rise * 0.72, 0)),
       start.clone().addScaledVector(radial, length).addScaledVector(side, bend * 1.4).add(new THREE.Vector3(0, rise, 0)),
     ];
-    const primary = addTube(segments, primaryPoints, random.range(0.24, 0.31), 0.045, 10, 0.19);
+    const primary = addTube(segments, primaryPoints, random.range(0.31, 0.41), 0.06, 12, 0.24);
 
     const secondaryCount = random.int(3, 5);
     for (let j = 0; j < secondaryCount; j++) {
@@ -160,7 +160,7 @@ function buildOakSkeleton(seed: number, height: number): { segments: TubeSegment
         attach.clone().addScaledVector(spread, secondaryLength * 0.74).addScaledVector(secondarySide, random.range(-0.32, 0.32)).add(new THREE.Vector3(0, 0.3, 0)),
         attach.clone().addScaledVector(spread, secondaryLength).add(new THREE.Vector3(0, random.range(0.18, 0.58), 0)),
       ];
-      const secondary = addTube(segments, secondaryPoints, random.range(0.105, 0.15), 0.022, 7, 0.115);
+      const secondary = addTube(segments, secondaryPoints, random.range(0.14, 0.19), 0.028, 8, 0.15);
 
       // Fine twigs fork asymmetrically from the secondary limb.
       const twigCount = random.int(2, 3);
@@ -180,19 +180,23 @@ function buildOakSkeleton(seed: number, height: number): { segments: TubeSegment
           twigOrigin.clone().addScaledVector(twigDirection, twigLength * 0.82),
           twigOrigin.clone().addScaledVector(twigDirection, twigLength),
         ];
-        const twig = addTube(segments, twigPoints, 0.055, 0.008, 5, 0.06);
+        const twig = addTube(segments, twigPoints, 0.07, 0.012, 6, 0.075);
         const leafPos = twig.getPoint(0.94);
         const leafDir = twig.getTangent(0.92).normalize();
         leaves.push({ position: leafPos, tangent: leafDir, strength: random.range(0.85, 1.15) });
       }
 
-      const leafPos = secondary.getPoint(0.93);
-      leaves.push({ position: leafPos, tangent: secondary.getTangent(0.9).normalize(), strength: random.range(0.7, 1.05) });
+      for (const leafT of [0.56, 0.76, 0.94]) {
+        const leafPos = secondary.getPoint(leafT);
+        leaves.push({ position: leafPos, tangent: secondary.getTangent(leafT).normalize(), strength: random.range(0.72, 1.08) });
+      }
     }
 
     // Small leaf sprays partially reveal the twig network instead of hiding it in one blob.
-    const crownPos = primary.getPoint(0.92);
-    leaves.push({ position: crownPos, tangent: primary.getTangent(0.9).normalize(), strength: random.range(0.55, 0.85) });
+    for (const crownT of [0.68, 0.88, 0.98]) {
+      const crownPos = primary.getPoint(crownT);
+      leaves.push({ position: crownPos, tangent: primary.getTangent(crownT).normalize(), strength: random.range(0.62, 0.92) });
+    }
   }
 
   return { segments, leaves };
@@ -209,7 +213,7 @@ function buildSpruceSkeleton(seed: number, height: number): { segments: TubeSegm
     new THREE.Vector3(random.range(-0.17, 0.17), height * 0.79, random.range(-0.15, 0.15)),
     new THREE.Vector3(random.range(-0.2, 0.2), height, random.range(-0.18, 0.18)),
   ];
-  const trunk = addTube(segments, trunkControls, 0.47, 0.055, 26, 0.19);
+  const trunk = addTube(segments, trunkControls, 0.63, 0.075, 30, 0.25);
 
   const rootCount = random.int(5, 7);
   for (let i = 0; i < rootCount; i++) {
@@ -221,7 +225,7 @@ function buildSpruceSkeleton(seed: number, height: number): { segments: TubeSegm
       radial.clone().multiplyScalar(length * 0.36).setY(0.26),
       radial.clone().multiplyScalar(length * 0.72).setY(0.05),
       radial.clone().multiplyScalar(length).setY(-0.12),
-    ], random.range(0.23, 0.32), 0.025, 8, 0.16);
+    ], random.range(0.29, 0.4), 0.035, 9, 0.21);
   }
 
   // Irregular whorls: each height, angle and limb length is independently varied.
@@ -248,7 +252,7 @@ function buildSpruceSkeleton(seed: number, height: number): { segments: TubeSegm
       origin.clone().addScaledVector(radial, length * 0.73).addScaledVector(side, sweep).add(new THREE.Vector3(0, -droop * 0.65, 0)),
       origin.clone().addScaledVector(radial, length).addScaledVector(side, sweep * 1.35).add(new THREE.Vector3(0, -droop, 0)),
     ];
-    const primary = addTube(segments, points, random.range(0.17, 0.22) * (0.7 + crownTaper * 0.3), 0.026, 8, 0.13);
+    const primary = addTube(segments, points, random.range(0.21, 0.28) * (0.7 + crownTaper * 0.3), 0.035, 9, 0.17);
 
     const secondaryCount = random.int(2, 4);
     for (let j = 0; j < secondaryCount; j++) {
@@ -266,7 +270,7 @@ function buildSpruceSkeleton(seed: number, height: number): { segments: TubeSegm
         attach.clone().addScaledVector(direction, secondaryLength * 0.45).add(new THREE.Vector3(0, -0.08, 0)),
         attach.clone().addScaledVector(direction, secondaryLength * 0.82).addScaledVector(secondarySide, random.range(-0.18, 0.18)),
         attach.clone().addScaledVector(direction, secondaryLength).add(new THREE.Vector3(0, -0.08, 0)),
-      ], 0.073, 0.012, 5, 0.07);
+      ], 0.09, 0.016, 6, 0.09);
       leaves.push({ position: secondary.getPoint(0.94), tangent: secondary.getTangent(0.9).normalize(), strength: random.range(0.8, 1.2) });
     }
 
@@ -283,8 +287,8 @@ function buildSpruceSkeleton(seed: number, height: number): { segments: TubeSegm
 function makeGrid(options: OrganicTreeOptions): GridSpec {
   const vertical = options.height + 1.9;
   const horizontal = options.bounds * 2;
-  const nx = options.species === 'oak' ? 57 : 51;
-  const ny = options.species === 'oak' ? 79 : 81;
+  const nx = options.species === 'oak' ? 73 : 63;
+  const ny = options.species === 'oak' ? 97 : 91;
   const nz = nx;
   return {
     min: new THREE.Vector3(-options.bounds, -0.78, -options.bounds),
@@ -429,8 +433,8 @@ function makeOrganicSurface(
     const normal = new THREE.Vector3(nxv, nyv, nzv).normalize();
 
     const barkBase = species === 'oak'
-      ? new THREE.Color('#795536')
-      : new THREE.Color('#644b35');
+      ? new THREE.Color('#936a43')
+      : new THREE.Color('#806346');
     const grain = 0.5 + 0.5 * Math.sin(Math.atan2(pz, px) * 19 + py * 2.6 + seed * 0.07);
     const fleck = 0.5 + 0.5 * Math.sin(px * 12.0 + pz * 7.5 + Math.sin(py * 5));
     const shade = 0.86 + grain * 0.095 + fleck * 0.045;
@@ -526,6 +530,7 @@ function makeOrganicSurface(
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
+  geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
   geometry.computeBoundingBox();
   return geometry;
@@ -591,8 +596,7 @@ function makeLeafInstances(
   const material = createOrganicLeafMaterial();
   material.roughness = species === 'oak' ? 0.88 : 0.94;
 
-  const estimate = anchors.reduce((sum, anchor) => sum + (species === 'oak' ? 12 : 9) * anchor.strength, 0);
-  const count = Math.max(1, Math.min(maxLeaves, Math.floor(estimate)));
+  const count = Math.max(1, maxLeaves);
   const leaves = new THREE.InstancedMesh(geometry, material, count);
   leaves.name = species === 'oak' ? 'Individual_Broadleaf_Leaves' : 'Individual_Spruce_Needles';
   leaves.castShadow = true;
@@ -603,24 +607,26 @@ function makeLeafInstances(
     : ['#234c35', '#2c603d', '#3b7044', '#4b7c49', '#5d8950'];
   const colorObjects = colors.map((color) => new THREE.Color(color));
   let index = 0;
+  const anchorCount = Math.max(1, anchors.length);
+  const baseQuota = Math.floor(count / anchorCount);
+  const remainder = count % anchorCount;
 
-  for (const anchor of anchors) {
-    const clusterSize = species === 'oak'
-      ? Math.max(7, Math.floor(random.range(9, 16) * anchor.strength))
-      : Math.max(6, Math.floor(random.range(7, 12) * anchor.strength));
+  for (let anchorIndex = 0; anchorIndex < anchors.length; anchorIndex++) {
+    const anchor = anchors[anchorIndex];
+    const clusterSize = baseQuota + (anchorIndex < remainder ? 1 : 0);
     const baseDirection = anchor.tangent.clone().normalize();
     const outward = new THREE.Vector3(anchor.position.x, random.range(0.12, 0.48), anchor.position.z).normalize();
     for (let i = 0; i < clusterSize && index < count; i++) {
       const azimuth = random.range(0, Math.PI * 2);
-      const elevation = species === 'oak' ? random.range(-0.1, 0.95) : random.range(-0.8, 0.25);
+      const elevation = species === 'oak' ? random.range(-0.18, 1.05) : random.range(-0.85, 0.3);
       const around = new THREE.Vector3(Math.cos(azimuth), elevation, Math.sin(azimuth)).normalize();
-      const direction = baseDirection.clone().multiplyScalar(0.42)
-        .addScaledVector(outward, 0.34)
-        .addScaledVector(around, 0.62)
+      const direction = baseDirection.clone().multiplyScalar(0.38)
+        .addScaledVector(outward, 0.29)
+        .addScaledVector(around, 0.72)
         .normalize();
       const position = anchor.position.clone()
-        .addScaledVector(direction, random.range(0.05, species === 'oak' ? 0.28 : 0.22))
-        .add(new THREE.Vector3(random.range(-0.12, 0.12), random.range(-0.1, 0.18), random.range(-0.12, 0.12)));
+        .addScaledVector(direction, random.range(0.12, species === 'oak' ? 0.58 : 0.42))
+        .add(new THREE.Vector3(random.range(-0.2, 0.2), random.range(-0.16, 0.24), random.range(-0.2, 0.2)));
 
       const up = species === 'oak'
         ? direction
@@ -629,11 +635,11 @@ function makeLeafInstances(
       dummy.quaternion.setFromUnitVectors(UP, up);
       dummy.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(UP, random.range(0, Math.PI * 2)));
       if (species === 'oak') {
-        const length = random.range(0.28, 0.52);
-        dummy.scale.set(length * random.range(0.8, 1.3), length, length * 0.2);
+        const length = random.range(0.43, 0.72);
+        dummy.scale.set(length * random.range(0.95, 1.45), length, length * 0.24);
       } else {
-        const length = random.range(0.36, 0.72);
-        dummy.scale.set(length * random.range(0.22, 0.42), length, length * 0.11);
+        const length = random.range(0.42, 0.78);
+        dummy.scale.set(length * random.range(0.24, 0.46), length, length * 0.13);
       }
       dummy.updateMatrix();
       leaves.setMatrixAt(index, dummy.matrix);
@@ -643,7 +649,6 @@ function makeLeafInstances(
       index++;
     }
   }
-
   leaves.count = index;
   leaves.instanceMatrix.needsUpdate = true;
   if (leaves.instanceColor) leaves.instanceColor.needsUpdate = true;
@@ -661,6 +666,7 @@ export function createOrganicTree(options: OrganicTreeOptions): THREE.Group {
   bark.name = options.species === 'oak' ? 'Unified_Oak_Trunk_Branch_Root_Surface' : 'Unified_Spruce_Trunk_Branch_Surface';
   bark.castShadow = true;
   bark.receiveShadow = true;
+  bark.frustumCulled = false;
 
   const group = new THREE.Group();
   group.name = options.species === 'oak' ? 'Eterna_Organic_Broadleaf_Oak' : 'Eterna_Organic_Spruce';
@@ -674,6 +680,12 @@ export function createOrganicTree(options: OrganicTreeOptions): THREE.Group {
     ? 'Individual curved leaf meshes instanced along terminal twigs.'
     : 'Individual tapered needle meshes instanced along irregular conifer whorls.';
   group.userData.seed = options.seed;
+  group.userData.barkVertexCount = barkGeometry.getAttribute('position').count;
+  group.userData.barkTriangleCount = barkGeometry.index ? barkGeometry.index.count / 3 : 0;
+  group.userData.barkBounds = barkGeometry.boundingBox ? barkGeometry.boundingBox.getSize(new THREE.Vector3()).toArray() : null;
+  if (group.userData.barkVertexCount < 1000 || group.userData.barkTriangleCount < 1000) {
+    console.warn('[Eterna] Organic tree bark surface is unexpectedly sparse', group.userData);
+  }
   return group;
 }
 

@@ -37,22 +37,35 @@ function bladeGeometry(width = 0.09, height = 0.65, bend = 0.12): THREE.BufferGe
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
-  const rows = 4;
-  for (let row = 0; row <= rows; row++) {
-    const t = row / rows;
-    const rowWidth = width * Math.pow(1 - t, 0.78);
-    const centerX = bend * t * t;
-    const centerZ = 0.12 * Math.sin(t * Math.PI) * bend;
-    for (const side of [-1, 1]) {
-      positions.push(centerX + side * rowWidth, height * t, centerZ);
-      const shade = 0.82 + 0.18 * t + side * 0.035;
-      colors.push(0.74 * shade, 0.9 * shade, 0.55 * shade);
-    }
-    if (row < rows) {
-      const a = row * 2;
-      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  const rows = 5;
+  const planes = [0, Math.PI / 3, (Math.PI * 2) / 3];
+
+  // Three curved ribbons cross at the root, giving each instanced blade a small 3D tuft silhouette.
+  for (const angle of planes) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const planeOffset = positions.length / 3;
+    for (let row = 0; row <= rows; row++) {
+      const t = row / rows;
+      const rowWidth = width * Math.pow(1 - t, 0.82);
+      const centerX = bend * t * t;
+      const centerZ = 0.12 * Math.sin(t * Math.PI) * bend;
+      for (const side of [-1, 1]) {
+        const localX = centerX + side * rowWidth;
+        const localZ = centerZ;
+        const x = localX * cos + localZ * sin;
+        const z = -localX * sin + localZ * cos;
+        positions.push(x, height * t, z);
+        const shade = 0.78 + 0.2 * t + side * 0.025 + (planes.indexOf(angle) * 0.018);
+        colors.push(0.76 * shade, 0.91 * shade, 0.56 * shade);
+      }
+      if (row < rows) {
+        const vi = planeOffset + row * 2;
+        indices.push(vi, vi + 1, vi + 2, vi + 1, vi + 3, vi + 2);
+      }
     }
   }
+
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -300,7 +313,7 @@ export function createUnderstory(
   ];
   const grassInstances = grassGeometries.map((geometry, i) => {
     const material = createGrassMaterial();
-    const mesh = new THREE.InstancedMesh(geometry, material, 1150);
+    const mesh = new THREE.InstancedMesh(geometry, material, 2600);
     mesh.name = 'Eterna_Grass_Blade_Variant_' + (i + 1);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -310,7 +323,7 @@ export function createUnderstory(
   const dummies = [new THREE.Object3D(), new THREE.Object3D(), new THREE.Object3D()];
   const used = [0, 0, 0];
 
-  for (let patch = 0; patch < 300; patch++) {
+  for (let patch = 0; patch < 420; patch++) {
     const cx = random.range(-43, 43);
     const cz = random.range(-43, 43);
     const roadCenter = 0.1 + cz * -0.055;
@@ -320,18 +333,18 @@ export function createUnderstory(
     const spawnClear = Math.hypot(cx, cz) < 5.5;
     if (roadClear || villageClear || pondClear || spawnClear) continue;
 
-    const blades = random.int(5, 11);
+    const blades = random.int(10, 20);
     for (let i = 0; i < blades; i++) {
       const variant = random.int(0, 2);
       const index = used[variant];
       if (index >= grassInstances[variant].count) continue;
-      const x = cx + random.range(-0.72, 0.72);
-      const z = cz + random.range(-0.72, 0.72);
+      const x = cx + random.range(-1.15, 1.15);
+      const z = cz + random.range(-1.15, 1.15);
       const y = heightAt(x, z);
       const dummy = dummies[variant];
       dummy.position.set(x, y + 0.015, z);
       dummy.rotation.set(random.range(-0.12, 0.12), random.range(0, Math.PI * 2), random.range(-0.12, 0.12));
-      const scale = random.range(0.72, 1.38);
+      const scale = random.range(0.78, 1.48);
       dummy.scale.set(scale, scale, scale);
       dummy.updateMatrix();
       grassInstances[variant].setMatrixAt(index, dummy.matrix);
