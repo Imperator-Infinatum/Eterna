@@ -42,3 +42,26 @@ The environment kit now includes deterministic 256px procedural DataTexture maps
 
 ## Review cadence
 At the end of every environment/character asset milestone, capture the same camera positions and review close, medium and far distances against Warcraft III: Reforged and relevant World of Warcraft zones. Record strengths, gaps, performance and the next concrete asset changes. Do not claim equivalence to a reference title; the comparison is a quality-direction tool.
+
+
+## 0.3.0 — Organic forest vegetation pass
+
+### Warcraft / WoW benchmark comparison
+| Visual criterion | Eterna 0.3.0 change | Remaining gap |
+|---|---|---|
+| Tree silhouette | Separate broadleaf and conifer growth profiles with seed-based variation | More species and authored silhouette studies |
+| Trunk-to-branch transitions | A single smooth-union surface for trunk, branch junctions, twigs and roots | Hand-sculpted bark folds, knot scars and larger branch collars |
+| Buttress roots | Unequal roots with randomized spread, taper and buried tips | More terrain-conforming roots and exposed root topology |
+| Canopy | Individual curved leaf meshes and narrow conifer needles; no spherical canopy blobs | Hand-painted leaf atlas, more leaf species and stronger translucency |
+| Forest floor | Instanced 3D grass, fern pinnae, shrubs and wildflowers | More seasonal variants, litter, moss and biome-specific ground materials |
+| Motion | Subtle leaf/grass shader wind and tree sway | Branch-level secondary motion and gust response |
+| Performance | Tree templates share geometry; ground cover uses InstancedMesh | LOD0/1/2 assets, impostors and screen-space density control |
+
+### Acceptance notes
+- Branching is seed-driven: origins and spacing are irregular, not copied from one radial template.
+- The trunk and branch network are polygonized as a continuous surface using a tapered-segment signed-distance field with smooth union and marching tetrahedra.
+- The root flare is generated from the same field and is therefore joined to the trunk surface rather than assembled from separate cylinders.
+- Leaf blades, spruce needles and ground-cover blades are actual meshes, not green spheres.
+- Asset manifest, strict TypeScript and production build are required before merge.
+
+This is a structural and rendering-quality milestone, not the final sculpted art pass. The tree surface still needs close-range visual inspection and future authored bark/leaf textures. The player-facing visual acceptance review should be repeated after Cloudflare publishes the new build.

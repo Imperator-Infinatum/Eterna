@@ -5,11 +5,12 @@ import {
   createGroundMaterial,
   createLanternPost,
   createMossyBoulder,
-  createOakTree,
-  createSpruceTree,
+  updateFoliageWind,
   createVillageWell,
   createWillowmereCottage,
 } from '../assets/environment';
+import { createOakTree, createSpruceTree } from '../assets/organic-trees';
+import { createUnderstory, updateUnderstoryWind } from '../assets/understory';
 
 const HALF = 48;
 
@@ -203,30 +204,58 @@ function addAssetAt(
   return instance;
 }
 
-function placeVegetation(scene: THREE.Scene, random: () => number): void {
-  const oakTemplates = [createOakTree(101), createOakTree(117), createOakTree(139)];
-  const spruceTemplates = [createSpruceTree(203), createSpruceTree(227)];
+async function yieldToBrowser(): Promise<void> {
+  await new Promise<void>((resolve) => window.setTimeout(resolve, 24));
+}
+
+async function placeVegetation(
+  scene: THREE.Scene,
+  random: () => number,
+  onProgress?: (progress: number, message: string) => void,
+): Promise<THREE.Object3D[]> {
+  const windTrees: THREE.Object3D[] = [];
+  // Each seed changes the growth skeleton, root spread, limb origins, branch angles and crown envelope.
+  const oakTemplates: THREE.Group[] = [];
+  const oakSeeds = [101, 173, 251];
+  for (let i = 0; i < oakSeeds.length; i++) {
+    onProgress?.(0.12 + i * 0.11, 'Sculpting broadleaf oak ' + (i + 1) + ' of ' + oakSeeds.length);
+    await yieldToBrowser();
+    oakTemplates.push(createOakTree(oakSeeds[i]));
+  }
+  const spruceTemplates: THREE.Group[] = [];
+  const spruceSeeds = [203, 277];
+  for (let i = 0; i < spruceSeeds.length; i++) {
+    onProgress?.(0.47 + i * 0.11, 'Growing spruce architecture ' + (i + 1) + ' of ' + spruceSeeds.length);
+    await yieldToBrowser();
+    spruceTemplates.push(createSpruceTree(spruceSeeds[i]));
+  }
   let placed = 0;
   let attempts = 0;
 
-  while (placed < 78 && attempts < 600) {
+  while (placed < 54 && attempts < 700) {
     attempts++;
     const x = random() * 88 - 44;
     const z = random() * 88 - 44;
     const roadCenter = 0.1 + z * -0.055;
-    const roadClear = Math.abs(x - roadCenter) < 4.6;
-    const villageClear = x > -18 && x < 21 && z > -39 && z < -11;
-    const pondClear = Math.hypot(x + 20.5, z + 13.4) < 10.5;
-    const spawnClear = Math.hypot(x, z) < 5.8;
+    const roadClear = Math.abs(x - roadCenter) < 5.2;
+    const villageClear = x > -19 && x < 22 && z > -40 && z < -10;
+    const pondClear = Math.hypot(x + 20.5, z + 13.4) < 10.7;
+    const spawnClear = Math.hypot(x, z) < 6.4;
     if (roadClear || villageClear || pondClear || spawnClear) continue;
 
-    const useSpruce = random() > 0.61;
+    const edge = Math.max(Math.abs(x), Math.abs(z));
+    const useSpruce = random() > 0.64 || edge > 38;
     const templates = useSpruce ? spruceTemplates : oakTemplates;
     const template = templates[Math.floor(random() * templates.length)];
-    const scale = useSpruce ? 0.84 + random() * 0.32 : 0.78 + random() * 0.38;
-    addAssetAt(scene, template, x, z, scale, random() * Math.PI * 2);
+    const scale = useSpruce ? random() * 0.28 + 0.8 : random() * 0.34 + 0.78;
+    const rotation = random() * Math.PI * 2;
+    const instance = addAssetAt(scene, template, x, z, scale, rotation);
+    instance.userData.windPhase = random() * Math.PI * 2;
+    instance.userData.windAmount = 0.7 + random() * 0.6;
+    windTrees.push(instance);
     placed++;
   }
+  return windTrees;
 }
 
 function placeVillageProps(scene: THREE.Scene, random: () => number): void {
@@ -281,7 +310,7 @@ function placeVillageProps(scene: THREE.Scene, random: () => number): void {
   }
 }
 
-export function createWorld(): WorldScene {
+export async function createWorld(onProgress?: (progress: number, message: string) => void): Promise<WorldScene> {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#b8c3a7');
   scene.fog = new THREE.FogExp2('#b8c3a7', 0.0082);
@@ -324,7 +353,12 @@ export function createWorld(): WorldScene {
 
   const water = createPond(scene, -20.5, -13.4);
   const random = randomSource(0xE7E2A);
-  placeVegetation(scene, random);
+  const windTrees = await placeVegetation(scene, random, onProgress);
+  onProgress?.(0.78, 'Growing grasses, ferns and wildflowers');
+  await yieldToBrowser();
+  createUnderstory(scene, terrainHeight, 0x51ed);
+  onProgress?.(0.94, 'Finishing Willowmere');
+  await yieldToBrowser();
   placeVillageProps(scene, random);
 
   const landmarks: WorldLandmark[] = [
@@ -383,6 +417,14 @@ export function createWorld(): WorldScene {
     landmarks,
     heightAt: terrainHeight,
     update(time: number) {
+      updateFoliageWind(time);
+      updateUnderstoryWind(time);
+      for (const tree of windTrees) {
+        const phase = Number(tree.userData.windPhase ?? 0);
+        const amount = Number(tree.userData.windAmount ?? 1);
+        tree.rotation.z = Math.sin(time * 0.00042 + phase) * 0.0022 * amount;
+        tree.rotation.x = Math.cos(time * 0.00031 + phase * 1.7) * 0.0014 * amount;
+      }
       water.position.y = terrainHeight(-20.5, -13.4) + 0.12 + Math.sin(time * 0.0007) * 0.018;
       flame.scale.y = 0.92 + Math.sin(time * 0.012) * 0.12;
       flame.rotation.y = Math.sin(time * 0.009) * 0.18;

@@ -13,3 +13,10 @@ These candidates are recorded for evaluation only. No third-party model or textu
 
 ## Required for every future external asset
 Record the asset name, filename, creator, original source URL, exact licence and version, attribution text, modifications and date checked. Preserve any licence file included with the pack. Do not assume a free download grants redistribution rights or permission to remove attribution.
+
+## Vegetation tool and asset research
+- Blender Sapling Tree Gen 1.0.0 — official Blender Extension. Blender 5.2+; 29 presets; editable Geometry Nodes tree construction, leaves, blossoms, armature and wind. Extension licence: GPL-3.0-or-later. Not bundled into Eterna. https://extensions.blender.org/add-ons/sapling-tree-gen/
+- Quaternius Stylized Nature MegaKit — 116 nature models (trees, plants, flowers, rocks, grass and bushes), CC0 1.0, glTF/FBX/OBJ/Blend. Candidate only; not downloaded or bundled because the pack's Ghibli-inspired look needs a selective art-direction review. https://quaternius.itch.io/stylized-nature-megakit
+- Weber & Penn, “Creation and Rendering of Realistic Trees,” SIGGRAPH 1995. Used as technical reference for growth hierarchy, branch variation and scale-aware rendering. https://courses.cs.duke.edu/cps124/fall01/resources/p119-weber.pdf
+
+Current 0.3.0 vegetation is original Eterna procedural content. No Blizzard assets, extracted game content or third-party model files are included.

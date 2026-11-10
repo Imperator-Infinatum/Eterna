@@ -3,26 +3,26 @@
   "project": "Eterna",
   "assets": [
     {
-      "id": "eterna.environment.willowmere.oak.01",
-      "name": "Willowmere Broadleaf Oak",
+      "id": "eterna.vegetation.willowmere.organic-oak",
+      "name": "Willowmere Organic Broadleaf Oak",
       "kind": "procedural",
       "creator": "Eterna project",
       "licence": "Original Eterna project content",
       "status": "approved",
-      "authoringPath": "src/assets/environment.ts#createOakTree",
-      "attribution": "Original Eterna model authored for this project",
-      "notes": "Curved tapered trunk, instanced roots and branches, layered vertex-colour canopy."
+      "authoringPath": "src/assets/organic-trees.ts#createOakTree",
+      "attribution": "Original Eterna mesh authored for this project",
+      "notes": "One continuous smooth-union SDF/marching-tetrahedra bark surface containing trunk, irregular primary/secondary/tertiary branches and buttress roots; individual instanced curved broadleaf meshes."
     },
     {
-      "id": "eterna.environment.willowmere.spruce.01",
-      "name": "Willowmere Spruce",
+      "id": "eterna.vegetation.willowmere.organic-spruce",
+      "name": "Willowmere Organic Spruce",
       "kind": "procedural",
       "creator": "Eterna project",
       "licence": "Original Eterna project content",
       "status": "approved",
-      "authoringPath": "src/assets/environment.ts#createSpruceTree",
-      "attribution": "Original Eterna model authored for this project",
-      "notes": "Narrow layered canopy and tapered bark profile."
+      "authoringPath": "src/assets/organic-trees.ts#createSpruceTree",
+      "attribution": "Original Eterna mesh authored for this project",
+      "notes": "Continuous trunk/branch/root surface with irregular whorl heights, variable branch length and drooping secondary limbs; individual tapered needle meshes."
     },
     {
       "id": "eterna.environment.willowmere.cottage.01",
@@ -85,6 +85,50 @@
       "authoringPath": "src/assets/environment.ts#surfaceTexture",
       "attribution": "Original Eterna procedural texture maps authored for this project",
       "notes": "Deterministic 256px DataTexture maps for bark, foliage, plaster, timber, stone, roof tiles and ground. UV mapped and generated locally at runtime."
+    },
+    {
+      "id": "eterna.vegetation.willowmere.grass-blades",
+      "name": "Willowmere Grass Blade Variants",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/understory.ts#createUnderstory",
+      "attribution": "Original Eterna vegetation mesh authored for this project",
+      "notes": "Three curved, tapered 3D blade meshes, patch-distributed and instanced with per-instance tint variation and shader wind."
+    },
+    {
+      "id": "eterna.vegetation.willowmere.woodland-ferns",
+      "name": "Willowmere Woodland Ferns",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/understory.ts#makeFern",
+      "attribution": "Original Eterna vegetation mesh authored for this project",
+      "notes": "Seven asymmetrical fronds with a central rachis and individually meshed pinnae."
+    },
+    {
+      "id": "eterna.vegetation.willowmere.woodland-shrubs",
+      "name": "Willowmere Woodland Shrubs",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/understory.ts#makeShrub",
+      "attribution": "Original Eterna vegetation mesh authored for this project",
+      "notes": "Irregular woody stems with instanced leaf blades and varied crown shapes."
+    },
+    {
+      "id": "eterna.vegetation.willowmere.wildflowers",
+      "name": "Willowmere Wildflowers",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/understory.ts#makeFlowers",
+      "attribution": "Original Eterna vegetation mesh authored for this project",
+      "notes": "Instanced flower stems, five individually oriented petals and flower centres with varied palette tints."
     }
   ],
   "externalCandidates": [
@@ -131,6 +175,17 @@
       "sourceUrl": "https://kaylousberg.com/game-assets/forest-nature-pack",
       "attribution": "Attribution not required; credit appreciated",
       "notes": "Large vegetation library. Useful for background dressing if individual model silhouettes meet the Eterna art target."
+    },
+    {
+      "id": "candidate.quaternius.stylized-nature-megakit",
+      "name": "Quaternius Stylized Nature MegaKit",
+      "kind": "external",
+      "creator": "Quaternius",
+      "licence": "CC0 1.0",
+      "status": "candidate",
+      "sourceUrl": "https://quaternius.itch.io/stylized-nature-megakit",
+      "attribution": "Attribution not required; Quaternius credit appreciated",
+      "notes": "116 textured nature models including 40 trees, 35 plants/flowers, rocks, grass and bushes. Free Standard zip is 99 MB and includes glTF/FBX/OBJ/Blend. Pack uses a Ghibli-inspired style; candidate for selective evaluation/re-materialing only. Not downloaded or bundled in this milestone."
     }
   ]
 }
