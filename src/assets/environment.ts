@@ -57,12 +57,6 @@ function seeded(seed: number): () => number {
   };
 }
 
-function orientBetween(object: THREE.Object3D, start: THREE.Vector3, end: THREE.Vector3): void {
-  const direction = end.clone().sub(start);
-  object.position.copy(start).add(end).multiplyScalar(0.5);
-  object.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
-}
-
 function makeTrunkGeometry(seed: number, height: number, baseRadius: number, topRadius: number): THREE.BufferGeometry {
   const random = seeded(seed);
   const radial = 20;
