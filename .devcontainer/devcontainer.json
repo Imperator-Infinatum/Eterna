@@ -1,0 +1,8 @@
+{
+  "name":"Eterna development",
+  "image":"mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "forwardPorts":[5173],
+  "portsAttributes":{"5173":{"label":"Eterna Vite development server","onAutoForward":"openBrowser"}},
+  "postCreateCommand":"npm install",
+  "customizations":{"vscode":{"extensions":["esbenp.prettier-vscode","ms-vscode.vscode-typescript-next"]}}
+}

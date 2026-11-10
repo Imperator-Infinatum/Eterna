@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#152018" />
+    <meta name="description" content="Eterna — an original browser-based fantasy RPG." />
+    <title>Eterna — A Fantasy RPG</title>
+  </head>
+  <body>
+    <main id="game-shell" aria-label="Eterna fantasy RPG">
+      <canvas id="game-canvas" aria-label="3D game world"></canvas>
+      <div class="vignette" aria-hidden="true"></div>
+      <header class="topbar">
+        <div class="brand-lockup"><div class="brand-mark">✦</div><div><div class="brand-title">ETERNA</div><div class="brand-subtitle">WILLOWMERE · THE GREENWARD</div></div></div>
+        <div class="build-pill"><span class="live-dot"></span> DEVELOPMENT BUILD 0.1.0</div>
+      </header>
+      <section class="quest-panel panel">
+        <div class="panel-kicker">THE FRONTIER</div><div class="quest-title">A World Taking Shape</div>
+        <p class="quest-copy">The old road winds into Willowmere. Select the Wayfarer and right-click the world to issue a movement order.</p>
+        <div class="quest-progress"><span></span></div><div class="quest-foot"><span>EXPLORATION PROTOTYPE</span><span id="world-coordinates">X 0 · Z 0</span></div>
+      </section>
+      <aside class="minimap-panel panel">
+        <div class="minimap-heading"><span>WILLOWMERE</span><span class="minimap-north">N ↑</span></div>
+        <canvas id="minimap" width="220" height="220" aria-label="World minimap; click to move"></canvas>
+        <div class="minimap-footer"><span class="map-key hero-key"></span> HERO <span class="map-key landmark-key"></span> LANDMARK</div>
+      </aside>
+      <div class="hero-card panel">
+        <div class="portrait-frame"><div class="portrait-glyph">✧</div></div>
+        <div class="hero-details"><div class="hero-name">THE WAYFARER</div><div class="hero-level">LEVEL 01 · GREENWARD VAGRANT</div><div class="status-bar health"><span></span></div><div class="status-bar mana"><span></span></div></div>
+        <div class="selection-status" id="selection-status">SELECTED</div>
+      </div>
+      <nav class="command-bar panel" aria-label="Hero command bar">
+        <div class="command-hint"><span class="keycap">LMB</span> SELECT · <span class="keycap">RMB</span> MOVE · <span class="keycap">MMB</span> ROTATE · SCROLL ZOOM</div>
+        <div class="command-slots">
+          <div class="command-slot"><span class="slot-icon">⚔</span><span class="slot-key">1</span><span class="slot-label">STRIKE</span></div>
+          <div class="command-slot"><span class="slot-icon">✧</span><span class="slot-key">2</span><span class="slot-label">FOCUS</span></div>
+          <div class="command-slot"><span class="slot-icon">◈</span><span class="slot-key">3</span><span class="slot-label">GUARD</span></div>
+          <div class="command-slot"><span class="slot-icon">❖</span><span class="slot-key">4</span><span class="slot-label">TALENT</span></div>
+          <div class="command-divider"></div><div class="command-slot utility"><span class="slot-icon">I</span><span class="slot-label">PACK</span></div><div class="command-slot utility"><span class="slot-icon">J</span><span class="slot-label">LORE</span></div>
+        </div>
+      </nav>
+      <div class="selection-toast" id="selection-toast">WAYFARER SELECTED</div>
+      <div class="loading-screen" id="loading-screen"><div class="loading-emblem">✦</div><div class="loading-title">ETERNA</div><div class="loading-subtitle">A FRONTIER AWAKENS</div><div class="loading-track"><span></span></div></div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
