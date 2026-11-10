@@ -9,10 +9,11 @@
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "npm run asset:audit && tsc --noEmit && vite build",
+    "build": "npm run asset:audit && npm run vegetation:audit && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "asset:audit": "node scripts/audit-assets.mjs"
+    "asset:audit": "node scripts/audit-assets.mjs",
+    "vegetation:audit": "tsx scripts/audit-vegetation.ts"
   },
   "dependencies": {
     "three": "^0.180.0"
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@types/three": "^0.180.0",
     "typescript": "^5.9.3",
-    "vite": "^7.1.12"
+    "vite": "^7.1.12",
+    "tsx": "^4.20.6"
   }
 }
