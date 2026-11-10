@@ -112,3 +112,17 @@ Most broadleaf oaks use a clear lower bole with scaffold limbs beginning above r
 The oak foliage system uses 4,500 instanced individual curved leaf blades per template. Anchor locations span primary branches, secondary branches and terminal twigs. The blade mesh has longitudinal segments, a tapered silhouette, a curved midrib and a shallow cup. The spruce system uses 850 instanced needle sprays; each spray contains nine individual tapered needle meshes, so the instance budget represents 7,650 needles per tree template.
 
 The headless vegetation audit constructs every production seed (four oaks and three spruces), records branch origin heights, and checks clear-bole limits, upper-crown instance counts and angular-sector coverage. The test is a structural proxy; the top-down browser screenshot remains the decisive visual acceptance check.
+
+
+## 0.3.5 bark PBR material
+The browser tree uses a hybrid material:
+- Eterna-authored 512px tileable base colour with plate variation, longitudinal fibres, knots and broken fissures.
+- Eterna-authored 512px procedural height field used as a subtle bump map.
+- ambientCG Bark012 1K Ambient Occlusion and Roughness maps, bundled locally under CC0 1.0.
+- Per-vertex warm species colour remains responsible for the stylized oak/spruce palette; the photogrammetry-derived maps provide restrained micro-surface response only.
+- The bark mesh copies UV coordinates into UV2 to support the AO map. Per-seed UV offsets reduce identical texture alignment across repeated templates.
+
+## 0.3.5 leaf and canopy refinement
+Oak leaf geometry is a cupped, lobed lamina with a raised midrib and paired lateral vein strips. The 5,800-instance budget is distributed across primary branch anchors, secondary limbs and terminal twigs. Clusters are slightly tighter and leaf blades larger so overlap creates a continuous crown at the gameplay camera angle. Spruce continues to use 850 instanced needle sprays per template (nine individual tapered needles per spray).
+
+The 5,800-leaf count is a structural target, not a claim of final visual density. Top-down browser captures remain the deciding measure for canopy closure; profile and silhouette captures must ensure the larger canopy does not hide all of the oak's scaffold structure.

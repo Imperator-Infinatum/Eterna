@@ -202,7 +202,7 @@ function buildOakSkeleton(
       const secondary = addTube(segments, secondaryPoints, random.range(0.14, 0.195), 0.025, 9, 0.155);
 
       // Leaves are attached along the secondary scaffold, not only at the outermost twig tips.
-      for (const leafT of [0.40, 0.82]) {
+      for (const leafT of [0.32, 0.58, 0.83]) {
         const leafPos = secondary.getPoint(leafT);
         leaves.push({ position: leafPos, tangent: secondary.getTangent(leafT).normalize(), strength: random.range(0.9, 1.22) });
       }
@@ -231,7 +231,7 @@ function buildOakSkeleton(
     }
 
     // Two distributed sprays per main limb carry foliage into the inner and outer crown.
-    for (const crownT of [0.56, 0.91]) {
+    for (const crownT of [0.42, 0.68, 0.91]) {
       const crownPos = primary.getPoint(crownT);
       leaves.push({ position: crownPos, tangent: primary.getTangent(crownT).normalize(), strength: random.range(0.82, 1.12) });
     }
@@ -485,8 +485,8 @@ function makeOrganicSurface(
     const normal = new THREE.Vector3(nxv, nyv, nzv).normalize();
 
     const barkBase = species === 'oak'
-      ? new THREE.Color('#936a43')
-      : new THREE.Color('#806346');
+      ? new THREE.Color('#a77a4f')
+      : new THREE.Color('#977453');
     const grain = 0.5 + 0.5 * Math.sin(Math.atan2(pz, px) * 19 + py * 2.6 + seed * 0.07);
     const fleck = 0.5 + 0.5 * Math.sin(px * 12.0 + pz * 7.5 + Math.sin(py * 5));
     const shade = 0.86 + grain * 0.095 + fleck * 0.045;
@@ -503,7 +503,7 @@ function makeOrganicSurface(
     positions.push(px, py, pz);
     normals.push(normal.x, normal.y, normal.z);
     colors.push(barkBase.r, barkBase.g, barkBase.b);
-    uvs.push(px * 0.43 + pz * 0.27, py * 0.24);
+    uvs.push(px * 0.43 + pz * 0.27 + (seed % 97) * 0.031, py * 0.24 + (seed % 53) * 0.047);
     cache.set(key, vertexIndex);
     return vertexIndex;
   };
@@ -584,6 +584,7 @@ function makeOrganicSurface(
   geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setAttribute('uv2', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
@@ -596,27 +597,38 @@ function makeBroadleafGeometry(): THREE.BufferGeometry {
   const colors: number[] = [];
   const uvs: number[] = [];
   const indices: number[] = [];
-  const lengthSegments = 7;
-  const widthSegments = 3;
+  const lengthSegments = 8;
+  const widthSegments = 4;
+  const surfacePoint = (t: number, across: number): THREE.Vector3 => {
+    const envelope = Math.pow(Math.max(0, Math.sin(Math.PI * t)), 0.82);
+    const lobe = 0.83 + 0.17 * Math.cos(t * Math.PI * 6.0);
+    const halfWidth = 0.36 * envelope * lobe;
+    const centerX = 0.028 * Math.sin(t * Math.PI * 1.35);
+    const centerZ = 0.048 * Math.sin(Math.PI * t);
+    const serration = Math.sign(across) * 0.012 * envelope
+      * Math.sin(t * Math.PI * 15.0 + Math.abs(across) * 1.3);
+    return new THREE.Vector3(
+      centerX + across * halfWidth + serration,
+      t,
+      centerZ + (1 - Math.abs(across)) * 0.036 * envelope - across * 0.012
+        + 0.008 * Math.sin(t * Math.PI * 2.0),
+    );
+  };
 
-  // A pointed, gently cupped leaf with a raised midrib and soft asymmetry.
+  // Oak-like blade: pointed tip, shallow lobes and a cupped lamina instead of a flat oval card.
   for (let row = 0; row <= lengthSegments; row++) {
     const t = row / lengthSegments;
-    const envelope = Math.pow(Math.sin(Math.PI * t), 0.76);
-    const halfWidth = 0.34 * envelope * (0.92 + 0.08 * Math.sin(t * Math.PI * 3.0));
-    const centerX = 0.035 * Math.sin(t * Math.PI * 1.25);
-    const centerZ = 0.042 * Math.sin(Math.PI * t);
     for (let col = 0; col <= widthSegments; col++) {
       const across = (col / widthSegments) * 2 - 1;
-      const x = centerX + across * halfWidth;
-      const y = t;
-      const z = centerZ + (1 - Math.abs(across)) * 0.028 * envelope - across * 0.012;
-      positions.push(x, y, z);
-      const edgeShade = Math.abs(across) * 0.12;
-      const tipShade = t * 0.045;
-      const veinLight = (1 - Math.abs(across)) * 0.07;
-      const shade = 0.84 - edgeShade - tipShade + veinLight;
-      colors.push(0.72 * shade, 0.9 * shade, 0.55 * shade);
+      const point = surfacePoint(t, across);
+      positions.push(point.x, point.y, point.z);
+      const edgeShade = Math.abs(across) * 0.19;
+      const midrib = Math.exp(-Math.abs(across) * 8.0) * 0.13;
+      const lateralVein = Math.exp(-Math.abs(Math.abs(across) - 0.5) * 9.0)
+        * (0.5 + 0.5 * Math.sin(t * Math.PI * 8.0)) * 0.055;
+      const tipWarmth = Math.pow(t, 1.7) * 0.035;
+      const shade = 0.82 - edgeShade + midrib + lateralVein - tipWarmth;
+      colors.push(0.69 * shade, 0.88 * shade, 0.51 * shade);
       uvs.push(col / widthSegments, t);
     }
   }
@@ -626,6 +638,36 @@ function makeBroadleafGeometry(): THREE.BufferGeometry {
       const a = row * (widthSegments + 1) + col;
       const b = a + widthSegments + 1;
       indices.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+  }
+
+  // Raised central midrib and fine paired lateral veins. They are geometry, not painted stripes.
+  const addVein = (samples: Array<{ t: number; across: number }>, width: number, brightness: number): void => {
+    const base = positions.length / 3;
+    const veinColor: [number, number, number] = [0.73 * brightness, 0.91 * brightness, 0.59 * brightness];
+    for (const sample of samples) {
+      for (const side of [-1, 1]) {
+        const point = surfacePoint(sample.t, THREE.MathUtils.clamp(sample.across + side * width, -0.96, 0.96));
+        positions.push(point.x, point.y, point.z + 0.009);
+        colors.push(...veinColor);
+        uvs.push(0.5 + sample.across * 0.5, sample.t);
+      }
+    }
+    for (let i = 0; i < samples.length - 1; i++) {
+      const a = base + i * 2;
+      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+    }
+  };
+
+  const midribSamples = Array.from({ length: 9 }, (_, i) => ({ t: 0.04 + i * 0.115, across: 0 }));
+  addVein(midribSamples, 0.018, 1.05);
+  for (const t0 of [0.22, 0.36, 0.5, 0.64, 0.78]) {
+    for (const sign of [-1, 1]) {
+      const samples = Array.from({ length: 4 }, (_, i) => ({
+        t: t0 + i * 0.028,
+        across: sign * i * 0.235,
+      }));
+      addVein(samples, 0.024, 0.94);
     }
   }
 
@@ -726,10 +768,10 @@ function makeLeafInstances(
         .addScaledVector(outward, species === 'oak' ? 0.38 : 0.22)
         .addScaledVector(around, 0.72)
         .normalize();
-      const spread = species === 'oak' ? random.range(0.035, 0.34) : random.range(0.025, 0.25);
+      const spread = species === 'oak' ? random.range(0.018, 0.24) : random.range(0.025, 0.25);
       const position = anchor.position.clone()
         .addScaledVector(direction, spread)
-        .add(new THREE.Vector3(random.range(-0.095, 0.095), random.range(-0.08, 0.12), random.range(-0.095, 0.095)));
+        .add(new THREE.Vector3(random.range(-0.065, 0.065), random.range(-0.055, 0.095), random.range(-0.065, 0.065)));
 
       const up = species === 'oak'
         ? direction
@@ -738,7 +780,7 @@ function makeLeafInstances(
       dummy.quaternion.setFromUnitVectors(UP, up);
       dummy.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(UP, random.range(0, Math.PI * 2)));
       if (species === 'oak') {
-        const length = random.range(0.25, 0.42);
+        const length = random.range(0.32, 0.48);
         dummy.scale.set(length * random.range(0.92, 1.22), length, length * 0.46);
       } else {
         const scale = random.range(0.62, 0.98);
@@ -803,7 +845,7 @@ export function createOakTree(seed = 101): THREE.Group {
     seed,
     height: 12.2,
     bounds: 6.45,
-    leafCount: 4500,
+    leafCount: 5800,
   });
 }
 

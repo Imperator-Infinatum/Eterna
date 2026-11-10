@@ -20,3 +20,14 @@ Record the asset name, filename, creator, original source URL, exact licence and
 - Weber & Penn, “Creation and Rendering of Realistic Trees,” SIGGRAPH 1995. Used as technical reference for growth hierarchy, branch variation and scale-aware rendering. https://courses.cs.duke.edu/cps124/fall01/resources/p119-weber.pdf
 
 Current 0.3.0 vegetation is original Eterna procedural content. No Blizzard assets, extracted game content or third-party model files are included.
+
+
+## Bark PBR texture attribution
+- **Bark 012 — ambientCG**: https://ambientcg.com/view?id=Bark012
+- **Creator/library**: ambientCG (Bark012 PBR material).
+- **Licence**: CC0 1.0 Universal; ambientCG states its assets are free for any purpose without attribution.
+- **Included files**: 1K Ambient Occlusion and Roughness JPG maps, stored in `public/assets/textures/bark/`.
+- **Not included**: Bark012 base colour, normal or displacement maps. Eterna generates its own stylized bark base-colour and height/bump maps.
+- Source metadata: `public/assets/textures/bark/Bark012_source.json`.
+
+The texture maps are used as surface-response support, not as a replacement for Eterna's art direction. The material remains warm and stylized through its in-house colour field, height field and per-vertex species tint.
