@@ -587,7 +587,10 @@ function configureBarkDataTexture(texture: THREE.Texture): THREE.Texture {
 
 let cachedBarkPbrMaps: { roughnessMap: THREE.Texture; aoMap: THREE.Texture } | null = null;
 
-function loadBarkPbrMaps(): { roughnessMap: THREE.Texture; aoMap: THREE.Texture } {
+function loadBarkPbrMaps(): { roughnessMap: THREE.Texture; aoMap: THREE.Texture } | null {
+  // The mesh audit runs in Node without a DOM. Keep its material generation headless-safe;
+  // the actual browser scene loads the CC0 PBR maps when a document is available.
+  if (typeof document === 'undefined') return null;
   if (cachedBarkPbrMaps) return cachedBarkPbrMaps;
   const loader = new THREE.TextureLoader();
   cachedBarkPbrMaps = {
@@ -603,9 +606,7 @@ export function createOrganicBarkMaterial(): THREE.MeshStandardMaterial {
     color: '#ffffff',
     map: surfaceTexture('bark', 79),
     roughness: 0.94,
-    roughnessMap: pbr.roughnessMap,
-    aoMap: pbr.aoMap,
-    aoMapIntensity: 0.38,
+    ...(pbr ? { roughnessMap: pbr.roughnessMap, aoMap: pbr.aoMap, aoMapIntensity: 0.38 } : {}),
     bumpMap: createBarkHeightTexture(),
     bumpScale: 0.055,
     vertexColors: true,
