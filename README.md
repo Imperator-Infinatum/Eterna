@@ -34,3 +34,5 @@ The production site is emitted to dist/.
 
 ## Cloudflare
 This repository is currently configured for Cloudflare Workers Builds using Wrangler's Vite integration. See DEPLOYMENT.md for the exact dashboard settings and automatic configuration flow.
+
+Current art foundation: **0.3.1 — Organic Vegetation and Forest Glade Polish**. The Willowmere forest uses unified tree surfaces, individual foliage geometry, layered understorey and seeded forest stands.

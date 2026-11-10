@@ -283,8 +283,8 @@ function buildSpruceSkeleton(seed: number, height: number): { segments: TubeSegm
 function makeGrid(options: OrganicTreeOptions): GridSpec {
   const vertical = options.height + 1.9;
   const horizontal = options.bounds * 2;
-  const nx = options.species === 'oak' ? 53 : 47;
-  const ny = options.species === 'oak' ? 75 : 77;
+  const nx = options.species === 'oak' ? 57 : 51;
+  const ny = options.species === 'oak' ? 79 : 81;
   const nz = nx;
   return {
     min: new THREE.Vector3(-options.bounds, -0.78, -options.bounds),
@@ -682,7 +682,7 @@ export function createOakTree(seed = 101): THREE.Group {
     species: 'oak',
     seed,
     height: 12.2,
-    bounds: 5.0,
+    bounds: 6.45,
     leafCount: 720,
   });
 }

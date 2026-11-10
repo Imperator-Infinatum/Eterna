@@ -65,3 +65,14 @@ At the end of every environment/character asset milestone, capture the same came
 - Asset manifest, strict TypeScript and production build are required before merge.
 
 This is a structural and rendering-quality milestone, not the final sculpted art pass. The tree surface still needs close-range visual inspection and future authored bark/leaf textures. The player-facing visual acceptance review should be repeated after Cloudflare publishes the new build.
+
+
+## 0.3.1 — Forest stand and terrain polish
+
+- Increased oak mesh bounds and sampling resolution so long secondary branches and terminal twig envelopes are less likely to be clipped.
+- Changed forest placement from a uniform random sprinkle into six seeded irregular stands with species bias. The seeded test placement reaches 72 trees in 135 attempts.
+- Retained clear space along the Kingroad, around Willowmere, at the Mirror Pool and at the player spawn.
+- Added another oak growth seed and another spruce seed to reduce the repetition rate across the 72-tree forest.
+- Increased grass patch density and introduced finer multi-frequency terrain undulation while preserving the road and village level relationships.
+
+The next review should specifically look for canopy overlap that hides the trunk silhouette, roots appearing to float on local slopes, buildings intersecting ground undulation, and excessive visual clutter near the path.

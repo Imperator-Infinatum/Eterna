@@ -310,7 +310,7 @@ export function createUnderstory(
   const dummies = [new THREE.Object3D(), new THREE.Object3D(), new THREE.Object3D()];
   const used = [0, 0, 0];
 
-  for (let patch = 0; patch < 225; patch++) {
+  for (let patch = 0; patch < 300; patch++) {
     const cx = random.range(-43, 43);
     const cz = random.range(-43, 43);
     const roadCenter = 0.1 + cz * -0.055;
