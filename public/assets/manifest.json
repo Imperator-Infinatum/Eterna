@@ -11,7 +11,7 @@
       "status": "approved",
       "authoringPath": "src/assets/organic-trees.ts#createOakTree",
       "attribution": "Original Eterna mesh authored for this project",
-      "notes": "One continuous smooth-union SDF/marching-tetrahedra bark surface containing trunk, irregular primary/secondary/tertiary branches and buttress roots; stronger gameplay-scale trunk/branch radii; evenly distributed instanced curved broadleaf meshes across all canopy anchor tiers; bark mesh vertex/triangle diagnostics. Polygonizer regression test validates finite vertices/normals, non-degenerate triangles and bounds."
+      "notes": "One continuous smooth-union SDF/marching-tetrahedra bark surface containing trunk, irregular primary/secondary/tertiary branches and buttress roots; clear-bole growth rules with at most one low scaffold branch on minority variants; six-to-eight scaffold limbs with separated heights and varied length; 4,500 instanced curved broadleaf leaves with upper-crown coverage."
     },
     {
       "id": "eterna.vegetation.willowmere.organic-spruce",
@@ -22,7 +22,7 @@
       "status": "approved",
       "authoringPath": "src/assets/organic-trees.ts#createSpruceTree",
       "attribution": "Original Eterna mesh authored for this project",
-      "notes": "Continuous trunk/branch/root surface with irregular whorl heights, variable branch length and drooping secondary limbs; individual tapered needle meshes; bark mesh vertex/triangle diagnostics. Polygonizer regression test validates finite vertices/normals, non-degenerate triangles and bounds."
+      "notes": "Continuous trunk/branch/root surface with 9–12 irregular whorls; clear bole on most variants and a low skirt on minority variants; varied branch length; 850 instanced needle sprays, each spray formed from nine individual tapered, curved needles."
     },
     {
       "id": "eterna.environment.willowmere.cottage.01",

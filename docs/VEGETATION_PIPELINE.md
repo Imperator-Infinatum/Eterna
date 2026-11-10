@@ -104,3 +104,11 @@ The next browser acceptance capture must show a visible continuous trunk, branch
 
 ## Polygonizer validation and regression test
 The signed-distance-field polygonizer uses tetrahedron-local indices (0..3) independently of cube-corner indices (0..7). Never mix the two index spaces. The `scripts/audit-vegetation.ts` test builds a deterministic oak and spruce model and verifies finite positions/normals, plausible bounds, non-degenerate triangles, minimum geometry counts and populated foliage instances. It runs as part of the production build.
+
+
+## 0.3.4 canopy and growth rules
+Most broadleaf oaks use a clear lower bole with scaffold limbs beginning above roughly 43% of tree height; only a minority may carry one lower lateral limb. A forced upper scaffold branch helps close the crown at the leader. Spruce whorls start higher on most specimens, with a low-skirt variant kept rare. Branch-height sampling enforces minimum separation instead of choosing independent heights that can bunch together.
+
+The oak foliage system uses 4,500 instanced individual curved leaf blades per template. Anchor locations span primary branches, secondary branches and terminal twigs. The blade mesh has longitudinal segments, a tapered silhouette, a curved midrib and a shallow cup. The spruce system uses 850 instanced needle sprays; each spray contains nine individual tapered needle meshes, so the instance budget represents 7,650 needles per tree template.
+
+The headless vegetation audit constructs every production seed (four oaks and three spruces), records branch origin heights, and checks clear-bole limits, upper-crown instance counts and angular-sector coverage. The test is a structural proxy; the top-down browser screenshot remains the decisive visual acceptance check.

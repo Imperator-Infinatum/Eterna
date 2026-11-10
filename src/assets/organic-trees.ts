@@ -55,6 +55,31 @@ function curveFrom(points: THREE.Vector3[]): THREE.CatmullRomCurve3 {
   return new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.48);
 }
 
+
+function sampleSeparatedHeights(
+  random: Random,
+  count: number,
+  min: number,
+  max: number,
+  minimumGap: number,
+): number[] {
+  const values: number[] = [];
+  let attempts = 0;
+  while (values.length < count && attempts < count * 100) {
+    attempts++;
+    const candidate = random.range(min, max);
+    if (values.every((value) => Math.abs(value - candidate) >= minimumGap)) values.push(candidate);
+  }
+  if (values.length < count) {
+    const missing = count - values.length;
+    for (let i = 0; i < missing; i++) {
+      const candidate = min + ((i + 0.5) / missing) * (max - min);
+      if (values.every((value) => Math.abs(value - candidate) >= minimumGap * 0.72)) values.push(candidate);
+    }
+  }
+  return values.sort((a, b) => a - b);
+}
+
 function addTube(
   segments: TubeSegment[],
   points: THREE.Vector3[],
@@ -85,10 +110,14 @@ function addTube(
   return curve;
 }
 
-function buildOakSkeleton(seed: number, height: number): { segments: TubeSegment[]; leaves: LeafAnchor[] } {
+function buildOakSkeleton(
+  seed: number,
+  height: number,
+): { segments: TubeSegment[]; leaves: LeafAnchor[]; branchOriginHeights: number[] } {
   const random = new Random(seed);
   const segments: TubeSegment[] = [];
   const leaves: LeafAnchor[] = [];
+  const branchOriginHeights: number[] = [];
   const trunkControls = [
     new THREE.Vector3(0, 0, 0),
     new THREE.Vector3(random.range(-0.13, 0.13), height * 0.17, random.range(-0.11, 0.11)),
@@ -99,7 +128,7 @@ function buildOakSkeleton(seed: number, height: number): { segments: TubeSegment
   ];
   const trunk = addTube(segments, trunkControls, 0.94, 0.15, 32, 0.34);
 
-  // Buttress roots start inside the trunk and flatten into the soil.
+  // Buttress roots are the only major radial structures in the lower trunk zone.
   const rootCount = random.int(6, 8);
   for (let i = 0; i < rootCount; i++) {
     const angle = (i / rootCount) * Math.PI * 2 + random.range(-0.34, 0.34);
@@ -117,95 +146,110 @@ function buildOakSkeleton(seed: number, height: number): { segments: TubeSegment
     addTube(segments, points, random.range(0.44, 0.62), 0.045, 12, 0.30);
   }
 
-  // Primary limbs originate at staggered heights and never share a repeated radial pattern.
-  const primaryCount = random.int(7, 9);
-  const heights = Array.from({ length: primaryCount }, () => random.range(height * 0.29, height * 0.77)).sort((a, b) => a - b);
-  const phase = random.range(0, Math.PI * 2);
+  // Most mature oaks retain a clear bole. Only a small minority grows one lower scaffold limb.
+  const lowerScaffoldVariant = random.next() < 0.18;
+  const primaryCount = random.int(6, 8);
+  const branchTs = sampleSeparatedHeights(
+    random,
+    primaryCount - 1 - (lowerScaffoldVariant ? 1 : 0),
+    0.43,
+    0.82,
+    0.055,
+  );
+  branchTs.push(random.range(0.845, 0.91)); // A high crown branch closes the upper canopy.
+  if (lowerScaffoldVariant) branchTs.push(random.range(0.31, 0.365)); // At most one low limb on this tree.
+  branchTs.sort((a, b) => a - b);
 
-  for (let i = 0; i < primaryCount; i++) {
-    const h = heights[i];
-    const t = h / height;
+  const phase = random.range(0, Math.PI * 2);
+  for (let i = 0; i < branchTs.length; i++) {
+    const t = branchTs[i];
+    const h = t * height;
+    branchOriginHeights.push(h);
     const origin = trunk.getPoint(t);
     const tangent = trunk.getTangent(t).normalize();
     const angle = phase + i * 2.399963 + random.range(-0.58, 0.58);
     const radial = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
     const side = new THREE.Vector3(-radial.z, 0, radial.x);
-    const length = random.range(2.25, 3.9) * (1.1 - t * 0.28);
-    const rise = random.range(0.42, 1.5) - Math.max(0, t - 0.58) * 1.2;
-    const bend = random.range(-0.62, 0.62);
+    // Lower scaffold limbs can reach farther; high limbs turn upward and shorten into the crown.
+    const length = random.range(2.05, 4.65) * (1.13 - t * 0.28);
+    const rise = random.range(0.48, 1.55) + Math.max(0, t - 0.72) * 1.25;
+    const bend = random.range(-0.78, 0.78);
     const start = origin.clone().addScaledVector(radial, random.range(0.12, 0.32));
     const primaryPoints = [
       start,
-      start.clone().addScaledVector(radial, length * 0.28).addScaledVector(tangent, 0.28),
-      start.clone().addScaledVector(radial, length * 0.68).addScaledVector(side, bend).add(new THREE.Vector3(0, rise * 0.72, 0)),
-      start.clone().addScaledVector(radial, length).addScaledVector(side, bend * 1.4).add(new THREE.Vector3(0, rise, 0)),
+      start.clone().addScaledVector(radial, length * 0.26).addScaledVector(tangent, 0.28),
+      start.clone().addScaledVector(radial, length * 0.64).addScaledVector(side, bend).add(new THREE.Vector3(0, rise * 0.7, 0)),
+      start.clone().addScaledVector(radial, length).addScaledVector(side, bend * 1.42).add(new THREE.Vector3(0, rise, 0)),
     ];
-    const primary = addTube(segments, primaryPoints, random.range(0.31, 0.41), 0.06, 12, 0.24);
+    const primary = addTube(segments, primaryPoints, random.range(0.31, 0.43), 0.055, 13, 0.25);
 
-    const secondaryCount = random.int(3, 5);
+    const secondaryCount = random.int(2, 4);
     for (let j = 0; j < secondaryCount; j++) {
-      const attachT = random.range(0.3, 0.91);
+      const attachT = random.range(0.26, 0.91);
       const attach = primary.getPoint(attachT);
       const primaryTangent = primary.getTangent(attachT).normalize();
       const spin = random.range(0, Math.PI * 2);
-      const spread = radial.clone().multiplyScalar(random.range(0.45, 0.85))
-        .add(side.clone().multiplyScalar(Math.sin(spin) * 0.65))
-        .add(new THREE.Vector3(0, random.range(0.22, 0.85), 0))
+      const spread = radial.clone().multiplyScalar(random.range(0.38, 0.92))
+        .add(side.clone().multiplyScalar(Math.sin(spin) * random.range(0.35, 0.82)))
+        .add(new THREE.Vector3(0, random.range(0.2, 0.95), 0))
         .normalize();
-      const secondaryLength = random.range(0.82, 1.85) * (0.7 + attachT * 0.34);
+      const secondaryLength = random.range(0.72, 2.45) * (0.72 + attachT * 0.43);
       const secondarySide = new THREE.Vector3(-spread.z, 0, spread.x);
       const secondaryPoints = [
         attach.clone().addScaledVector(primaryTangent, 0.02),
-        attach.clone().addScaledVector(spread, secondaryLength * 0.36).add(new THREE.Vector3(0, 0.18, 0)),
-        attach.clone().addScaledVector(spread, secondaryLength * 0.74).addScaledVector(secondarySide, random.range(-0.32, 0.32)).add(new THREE.Vector3(0, 0.3, 0)),
-        attach.clone().addScaledVector(spread, secondaryLength).add(new THREE.Vector3(0, random.range(0.18, 0.58), 0)),
+        attach.clone().addScaledVector(spread, secondaryLength * 0.32).add(new THREE.Vector3(0, random.range(0.08, 0.24), 0)),
+        attach.clone().addScaledVector(spread, secondaryLength * 0.72).addScaledVector(secondarySide, random.range(-0.4, 0.4)).add(new THREE.Vector3(0, random.range(0.16, 0.42), 0)),
+        attach.clone().addScaledVector(spread, secondaryLength).add(new THREE.Vector3(0, random.range(0.22, 0.68), 0)),
       ];
-      const secondary = addTube(segments, secondaryPoints, random.range(0.14, 0.19), 0.028, 8, 0.15);
+      const secondary = addTube(segments, secondaryPoints, random.range(0.14, 0.195), 0.025, 9, 0.155);
 
-      // Fine twigs fork asymmetrically from the secondary limb.
-      const twigCount = random.int(2, 3);
+      // Leaves are attached along the secondary scaffold, not only at the outermost twig tips.
+      for (const leafT of [0.40, 0.82]) {
+        const leafPos = secondary.getPoint(leafT);
+        leaves.push({ position: leafPos, tangent: secondary.getTangent(leafT).normalize(), strength: random.range(0.9, 1.22) });
+      }
+
+      const twigCount = random.int(2, 4);
       for (let k = 0; k < twigCount; k++) {
-        const twigT = random.range(0.55, 0.96);
+        const twigT = random.range(0.38, 0.92);
         const twigOrigin = secondary.getPoint(twigT);
         const twigTangent = secondary.getTangent(twigT).normalize();
         const twigSpin = random.range(0, Math.PI * 2);
         const twigDirection = spread.clone()
-          .addScaledVector(secondarySide, Math.sin(twigSpin) * 0.65)
-          .add(new THREE.Vector3(0, random.range(0.35, 0.9), 0))
+          .addScaledVector(secondarySide, Math.sin(twigSpin) * 0.76)
+          .add(new THREE.Vector3(0, random.range(0.28, 0.98), 0))
           .normalize();
-        const twigLength = random.range(0.38, 0.95);
+        const twigLength = random.range(0.42, 1.34);
         const twigPoints = [
           twigOrigin,
-          twigOrigin.clone().addScaledVector(twigDirection, twigLength * 0.42).addScaledVector(twigTangent, 0.08),
-          twigOrigin.clone().addScaledVector(twigDirection, twigLength * 0.82),
+          twigOrigin.clone().addScaledVector(twigDirection, twigLength * 0.38).addScaledVector(twigTangent, random.range(-0.08, 0.12)),
+          twigOrigin.clone().addScaledVector(twigDirection, twigLength * 0.76).addScaledVector(secondarySide, random.range(-0.16, 0.16)),
           twigOrigin.clone().addScaledVector(twigDirection, twigLength),
         ];
-        const twig = addTube(segments, twigPoints, 0.07, 0.012, 6, 0.075);
-        const leafPos = twig.getPoint(0.94);
-        const leafDir = twig.getTangent(0.92).normalize();
-        leaves.push({ position: leafPos, tangent: leafDir, strength: random.range(0.85, 1.15) });
-      }
-
-      for (const leafT of [0.56, 0.76, 0.94]) {
-        const leafPos = secondary.getPoint(leafT);
-        leaves.push({ position: leafPos, tangent: secondary.getTangent(leafT).normalize(), strength: random.range(0.72, 1.08) });
+        const twig = addTube(segments, twigPoints, 0.064, 0.009, 6, 0.07);
+        const twigAnchor = twig.getPoint(0.92);
+        leaves.push({ position: twigAnchor, tangent: twig.getTangent(0.88).normalize(), strength: random.range(0.92, 1.25) });
       }
     }
 
-    // Small leaf sprays partially reveal the twig network instead of hiding it in one blob.
-    for (const crownT of [0.68, 0.88, 0.98]) {
+    // Two distributed sprays per main limb carry foliage into the inner and outer crown.
+    for (const crownT of [0.56, 0.91]) {
       const crownPos = primary.getPoint(crownT);
-      leaves.push({ position: crownPos, tangent: primary.getTangent(crownT).normalize(), strength: random.range(0.62, 0.92) });
+      leaves.push({ position: crownPos, tangent: primary.getTangent(crownT).normalize(), strength: random.range(0.82, 1.12) });
     }
   }
 
-  return { segments, leaves };
+  return { segments, leaves, branchOriginHeights };
 }
 
-function buildSpruceSkeleton(seed: number, height: number): { segments: TubeSegment[]; leaves: LeafAnchor[] } {
+function buildSpruceSkeleton(
+  seed: number,
+  height: number,
+): { segments: TubeSegment[]; leaves: LeafAnchor[]; branchOriginHeights: number[] } {
   const random = new Random(seed);
   const segments: TubeSegment[] = [];
   const leaves: LeafAnchor[] = [];
+  const branchOriginHeights: number[] = [];
   const trunkControls = [
     new THREE.Vector3(0, 0, 0),
     new THREE.Vector3(random.range(-0.06, 0.06), height * 0.23, random.range(-0.05, 0.05)),
@@ -228,60 +272,70 @@ function buildSpruceSkeleton(seed: number, height: number): { segments: TubeSegm
     ], random.range(0.29, 0.4), 0.035, 9, 0.21);
   }
 
-  // Irregular whorls: each height, angle and limb length is independently varied.
-  const branchBands = random.int(11, 14);
+  // A small minority of conifers carry a low skirt; most retain visible trunk between roots and boughs.
+  const lowSkirtVariant = random.next() < 0.18;
+  const branchBands = random.int(9, 12);
+  const bandTs = sampleSeparatedHeights(
+    random,
+    branchBands - 1 - (lowSkirtVariant ? 1 : 0),
+    0.29,
+    0.86,
+    0.047,
+  );
+  bandTs.push(random.range(0.88, 0.94));
+  if (lowSkirtVariant) bandTs.push(random.range(0.17, 0.22));
+  bandTs.sort((a, b) => a - b);
   const phase = random.range(0, Math.PI * 2);
-  const bandHeights = Array.from({ length: branchBands }, (_, i) =>
-    height * (0.16 + (i / branchBands) * 0.74) + random.range(-0.38, 0.38),
-  ).sort((a, b) => a - b);
 
-  for (let i = 0; i < bandHeights.length; i++) {
-    const h = bandHeights[i];
-    const t = THREE.MathUtils.clamp(h / height, 0.12, 0.94);
+  for (let i = 0; i < bandTs.length; i++) {
+    const t = THREE.MathUtils.clamp(bandTs[i], 0.12, 0.95);
+    const h = t * height;
+    branchOriginHeights.push(h);
     const origin = trunk.getPoint(t);
     const angle = phase + i * 2.399963 + random.range(-0.72, 0.72);
     const radial = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
     const side = new THREE.Vector3(-radial.z, 0, radial.x);
-    const crownTaper = Math.pow(1 - t, 0.72);
-    const length = random.range(1.25, 2.65) * crownTaper + 0.28;
-    const droop = random.range(0.35, 0.95);
-    const sweep = random.range(-0.45, 0.45);
+    const crownTaper = Math.pow(1 - t, 0.78);
+    const length = random.range(1.0, 3.35) * crownTaper + 0.3;
+    const droop = random.range(0.28, 1.08);
+    const sweep = random.range(-0.58, 0.58);
     const points = [
       origin.clone().addScaledVector(radial, 0.08),
-      origin.clone().addScaledVector(radial, length * 0.34).add(new THREE.Vector3(0, -0.12, 0)),
-      origin.clone().addScaledVector(radial, length * 0.73).addScaledVector(side, sweep).add(new THREE.Vector3(0, -droop * 0.65, 0)),
-      origin.clone().addScaledVector(radial, length).addScaledVector(side, sweep * 1.35).add(new THREE.Vector3(0, -droop, 0)),
+      origin.clone().addScaledVector(radial, length * 0.32).add(new THREE.Vector3(0, random.range(-0.18, -0.02), 0)),
+      origin.clone().addScaledVector(radial, length * 0.72).addScaledVector(side, sweep).add(new THREE.Vector3(0, -droop * 0.62, 0)),
+      origin.clone().addScaledVector(radial, length).addScaledVector(side, sweep * 1.4).add(new THREE.Vector3(0, -droop, 0)),
     ];
-    const primary = addTube(segments, points, random.range(0.21, 0.28) * (0.7 + crownTaper * 0.3), 0.035, 9, 0.17);
+    const primary = addTube(segments, points, random.range(0.2, 0.29) * (0.72 + crownTaper * 0.28), 0.032, 9, 0.17);
 
     const secondaryCount = random.int(2, 4);
     for (let j = 0; j < secondaryCount; j++) {
-      const attachT = random.range(0.3, 0.92);
+      const attachT = random.range(0.24, 0.92);
       const attach = primary.getPoint(attachT);
       const spin = random.range(0, Math.PI * 2);
       const direction = radial.clone()
-        .addScaledVector(side, Math.sin(spin) * 0.7)
-        .add(new THREE.Vector3(0, random.range(0.12, 0.4), 0))
+        .addScaledVector(side, Math.sin(spin) * random.range(0.52, 0.9))
+        .add(new THREE.Vector3(0, random.range(-0.16, 0.28), 0))
         .normalize();
-      const secondaryLength = random.range(0.45, 1.1) * crownTaper + 0.18;
+      const secondaryLength = random.range(0.48, 1.42) * crownTaper + 0.18;
       const secondarySide = new THREE.Vector3(-direction.z, 0, direction.x);
       const secondary = addTube(segments, [
         attach,
-        attach.clone().addScaledVector(direction, secondaryLength * 0.45).add(new THREE.Vector3(0, -0.08, 0)),
-        attach.clone().addScaledVector(direction, secondaryLength * 0.82).addScaledVector(secondarySide, random.range(-0.18, 0.18)),
-        attach.clone().addScaledVector(direction, secondaryLength).add(new THREE.Vector3(0, -0.08, 0)),
-      ], 0.09, 0.016, 6, 0.09);
-      leaves.push({ position: secondary.getPoint(0.94), tangent: secondary.getTangent(0.9).normalize(), strength: random.range(0.8, 1.2) });
+        attach.clone().addScaledVector(direction, secondaryLength * 0.42).add(new THREE.Vector3(0, -0.06, 0)),
+        attach.clone().addScaledVector(direction, secondaryLength * 0.78).addScaledVector(secondarySide, random.range(-0.24, 0.24)),
+        attach.clone().addScaledVector(direction, secondaryLength).add(new THREE.Vector3(0, -0.1, 0)),
+      ], 0.088, 0.014, 6, 0.09);
+      for (const leafT of [0.35, 0.72, 0.96]) {
+        leaves.push({ position: secondary.getPoint(leafT), tangent: secondary.getTangent(leafT).normalize(), strength: random.range(0.9, 1.2) });
+      }
     }
 
-    // Dense needles sit along the limbs as overlapping sprays, not spherical canopy puffs.
-    for (let k = 1; k <= 4; k++) {
-      const tNeedle = 0.34 + k * 0.14 + random.range(-0.035, 0.035);
-      const p = primary.getPoint(Math.min(tNeedle, 0.96));
-      leaves.push({ position: p, tangent: primary.getTangent(Math.min(tNeedle, 0.96)).normalize(), strength: random.range(0.72, 1.12) });
+    // Needles occupy the whole bough length and overlap as sprays, not as bare radiating spikes.
+    for (const tNeedle of [0.2, 0.38, 0.56, 0.74, 0.92]) {
+      const point = primary.getPoint(tNeedle);
+      leaves.push({ position: point, tangent: primary.getTangent(tNeedle).normalize(), strength: random.range(0.86, 1.18) });
     }
   }
-  return { segments, leaves };
+  return { segments, leaves, branchOriginHeights };
 }
 
 function makeGrid(options: OrganicTreeOptions): GridSpec {
@@ -540,49 +594,89 @@ function makeOrganicSurface(
 }
 
 function makeBroadleafGeometry(): THREE.BufferGeometry {
-  const positions = [
-    0, 0, 0,
-    -0.22, 0.28, 0.0,
-    -0.3, 0.56, 0.012,
-    0, 1, 0.08,
-    0.3, 0.56, 0.012,
-    0.22, 0.28, 0.0,
-    0, 0.47, 0.055,
-  ];
-  const indices = [0, 1, 6, 1, 2, 6, 2, 3, 6, 3, 4, 6, 4, 5, 6, 5, 0, 6];
-  const colors = [
-    0.74, 0.88, 0.62,
-    0.82, 0.94, 0.68,
-    0.72, 0.9, 0.58,
-    0.9, 0.97, 0.72,
-    0.72, 0.9, 0.58,
-    0.82, 0.94, 0.68,
-    0.96, 1.0, 0.79,
-  ];
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+  const lengthSegments = 7;
+  const widthSegments = 3;
+
+  // A pointed, gently cupped leaf with a raised midrib and soft asymmetry.
+  for (let row = 0; row <= lengthSegments; row++) {
+    const t = row / lengthSegments;
+    const envelope = Math.pow(Math.sin(Math.PI * t), 0.76);
+    const halfWidth = 0.34 * envelope * (0.92 + 0.08 * Math.sin(t * Math.PI * 3.0));
+    const centerX = 0.035 * Math.sin(t * Math.PI * 1.25);
+    const centerZ = 0.042 * Math.sin(Math.PI * t);
+    for (let col = 0; col <= widthSegments; col++) {
+      const across = (col / widthSegments) * 2 - 1;
+      const x = centerX + across * halfWidth;
+      const y = t;
+      const z = centerZ + (1 - Math.abs(across)) * 0.028 * envelope - across * 0.012;
+      positions.push(x, y, z);
+      const edgeShade = Math.abs(across) * 0.12;
+      const tipShade = t * 0.045;
+      const veinLight = (1 - Math.abs(across)) * 0.07;
+      const shade = 0.84 - edgeShade - tipShade + veinLight;
+      colors.push(0.72 * shade, 0.9 * shade, 0.55 * shade);
+      uvs.push(col / widthSegments, t);
+    }
+  }
+
+  for (let row = 0; row < lengthSegments; row++) {
+    for (let col = 0; col < widthSegments; col++) {
+      const a = row * (widthSegments + 1) + col;
+      const b = a + widthSegments + 1;
+      indices.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+  }
+
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0.5, 0, 0.28, 0.28, 0.1, 0.56, 0.5, 1, 0.9, 0.56, 0.72, 0.28, 0.5, 0.47], 2));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
 }
 
-function makeNeedleGeometry(): THREE.BufferGeometry {
-  const positions = [
-    0, 0, 0,
-    -0.07, 0.3, 0.015,
-    -0.03, 0.68, 0.045,
-    0, 1, 0.075,
-    0.03, 0.68, 0.045,
-    0.07, 0.3, 0.015,
-    0, 0.46, 0.055,
-  ];
-  const indices = [0, 1, 6, 1, 2, 6, 2, 3, 6, 3, 4, 6, 4, 5, 6, 5, 0, 6];
+function makeNeedleSprayGeometry(): THREE.BufferGeometry {
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  const needleCount = 9;
+  const lengthSegments = 5;
+
+  // Each instance is a small 3D spray of individual tapered needles around a woody bough.
+  for (let needle = 0; needle < needleCount; needle++) {
+    const angle = (needle / needleCount) * Math.PI * 2 + (needle % 2) * 0.16;
+    const elevation = -0.2 + 0.26 * Math.sin(needle * 2.17);
+    const direction = new THREE.Vector3(Math.cos(angle), elevation, Math.sin(angle)).normalize();
+    const side = new THREE.Vector3(-direction.z, 0.08, direction.x).normalize();
+    const length = 0.48 + 0.12 * (0.5 + 0.5 * Math.sin(needle * 3.7));
+    const base = positions.length / 3;
+
+    for (let row = 0; row <= lengthSegments; row++) {
+      const t = row / lengthSegments;
+      const width = 0.045 * Math.pow(1 - t, 0.72) * Math.min(1, t * 5);
+      const center = direction.clone().multiplyScalar(length * t)
+        .add(new THREE.Vector3(0, 0.025 * Math.sin(Math.PI * t), 0));
+      for (const sign of [-1, 1]) {
+        const point = center.clone().addScaledVector(side, width * sign);
+        positions.push(point.x, point.y, point.z);
+        const light = 0.78 + t * 0.12 + (needle % 3) * 0.025 + (sign > 0 ? 0.025 : 0);
+        colors.push(0.82 * light, 0.93 * light, 0.7 * light);
+      }
+      if (row < lengthSegments) {
+        const a = base + row * 2;
+        indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      }
+    }
+  }
+
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.Float32BufferAttribute([1,1,1, 0.9,0.96,0.82, 0.82,0.92,0.76, 0.9,0.97,0.82, 0.82,0.92,0.76, 0.9,0.96,0.82, 1,1,0.9], 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0.5, 0, 0.2, 0.3, 0.4, 0.68, 0.5, 1, 0.6, 0.68, 0.8, 0.3, 0.5, 0.46], 2));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
@@ -595,59 +689,67 @@ function makeLeafInstances(
   maxLeaves: number,
 ): THREE.InstancedMesh {
   const random = new Random(seed ^ 0x9e3779b9);
-  const geometry = species === 'oak' ? makeBroadleafGeometry() : makeNeedleGeometry();
+  const geometry = species === 'oak' ? makeBroadleafGeometry() : makeNeedleSprayGeometry();
   const material = createOrganicLeafMaterial();
   material.roughness = species === 'oak' ? 0.88 : 0.94;
 
   const count = Math.max(1, maxLeaves);
   const leaves = new THREE.InstancedMesh(geometry, material, count);
-  leaves.name = species === 'oak' ? 'Individual_Broadleaf_Leaves' : 'Individual_Spruce_Needles';
+  leaves.name = species === 'oak' ? 'Individual_Broadleaf_Leaves' : 'Individual_Spruce_Needle_Sprays';
   leaves.castShadow = true;
   leaves.receiveShadow = true;
-  const dummy = new THREE.Object3D();
   const colors = species === 'oak'
-    ? ['#315a36', '#416c39', '#527e40', '#638b48', '#78964f', '#466b3b']
-    : ['#234c35', '#2c603d', '#3b7044', '#4b7c49', '#5d8950'];
+    ? ['#315a36', '#416c39', '#527e40', '#638b48', '#78964f', '#466b3b', '#879b54']
+    : ['#234c35', '#2c603d', '#3b7044', '#4b7c49', '#5d8950', '#719454'];
   const colorObjects = colors.map((color) => new THREE.Color(color));
-  let index = 0;
-  const anchorCount = Math.max(1, anchors.length);
-  const baseQuota = Math.floor(count / anchorCount);
-  const remainder = count % anchorCount;
+  const totalStrength = anchors.reduce((sum, anchor) => sum + Math.max(0.1, anchor.strength), 0);
+  const quotas = anchors.map((anchor) => Math.floor(count * Math.max(0.1, anchor.strength) / totalStrength));
+  let remaining = count - quotas.reduce((sum, quota) => sum + quota, 0);
+  for (let i = 0; remaining > 0 && anchors.length > 0; i = (i + 1) % anchors.length) {
+    quotas[i]++;
+    remaining--;
+  }
 
+  const dummy = new THREE.Object3D();
+  const UP = new THREE.Vector3(0, 1, 0);
+  let index = 0;
   for (let anchorIndex = 0; anchorIndex < anchors.length; anchorIndex++) {
     const anchor = anchors[anchorIndex];
-    const clusterSize = baseQuota + (anchorIndex < remainder ? 1 : 0);
     const baseDirection = anchor.tangent.clone().normalize();
-    const outward = new THREE.Vector3(anchor.position.x, random.range(0.12, 0.48), anchor.position.z).normalize();
-    for (let i = 0; i < clusterSize && index < count; i++) {
-      const azimuth = random.range(0, Math.PI * 2);
-      const elevation = species === 'oak' ? random.range(-0.18, 1.05) : random.range(-0.85, 0.3);
+    const outward = new THREE.Vector3(anchor.position.x, random.range(0.08, 0.28), anchor.position.z);
+    if (outward.lengthSq() < 1e-5) outward.set(1, 0.1, 0);
+    outward.normalize();
+    for (let i = 0; i < quotas[anchorIndex] && index < count; i++) {
+      // Golden-angle placement avoids identical radial fans at neighbouring branch anchors.
+      const azimuth = i * 2.399963 + anchorIndex * 1.713 + random.range(-0.22, 0.22);
+      const elevation = species === 'oak' ? random.range(-0.38, 0.88) : random.range(-0.72, 0.22);
       const around = new THREE.Vector3(Math.cos(azimuth), elevation, Math.sin(azimuth)).normalize();
-      const direction = baseDirection.clone().multiplyScalar(0.38)
-        .addScaledVector(outward, 0.29)
+      const direction = baseDirection.clone().multiplyScalar(species === 'oak' ? 0.34 : 0.42)
+        .addScaledVector(outward, species === 'oak' ? 0.38 : 0.22)
         .addScaledVector(around, 0.72)
         .normalize();
+      const spread = species === 'oak' ? random.range(0.035, 0.34) : random.range(0.025, 0.25);
       const position = anchor.position.clone()
-        .addScaledVector(direction, random.range(0.12, species === 'oak' ? 0.58 : 0.42))
-        .add(new THREE.Vector3(random.range(-0.2, 0.2), random.range(-0.16, 0.24), random.range(-0.2, 0.2)));
+        .addScaledVector(direction, spread)
+        .add(new THREE.Vector3(random.range(-0.095, 0.095), random.range(-0.08, 0.12), random.range(-0.095, 0.095)));
 
       const up = species === 'oak'
         ? direction
-        : direction.clone().add(new THREE.Vector3(0, -0.2, 0)).normalize();
+        : direction.clone().add(new THREE.Vector3(0, -0.18, 0)).normalize();
       dummy.position.copy(position);
       dummy.quaternion.setFromUnitVectors(UP, up);
       dummy.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(UP, random.range(0, Math.PI * 2)));
       if (species === 'oak') {
-        const length = random.range(0.43, 0.72);
-        dummy.scale.set(length * random.range(0.95, 1.45), length, length * 0.24);
+        const length = random.range(0.25, 0.42);
+        dummy.scale.set(length * random.range(0.92, 1.22), length, length * 0.46);
       } else {
-        const length = random.range(0.42, 0.78);
-        dummy.scale.set(length * random.range(0.24, 0.46), length, length * 0.13);
+        const scale = random.range(0.62, 0.98);
+        dummy.scale.set(scale * random.range(0.82, 1.12), scale, scale * 0.9);
       }
       dummy.updateMatrix();
       leaves.setMatrixAt(index, dummy.matrix);
       const tint = colorObjects[random.int(0, colorObjects.length - 1)].clone();
-      tint.multiplyScalar(random.range(0.88, 1.12));
+      tint.multiplyScalar(random.range(0.9, 1.1));
       leaves.setColorAt(index, tint);
       index++;
     }
@@ -683,6 +785,11 @@ export function createOrganicTree(options: OrganicTreeOptions): THREE.Group {
     ? 'Individual curved leaf meshes instanced along terminal twigs.'
     : 'Individual tapered needle meshes instanced along irregular conifer whorls.';
   group.userData.seed = options.seed;
+  group.userData.treeHeight = options.height;
+  group.userData.species = options.species;
+  group.userData.branchOriginHeights = skeleton.branchOriginHeights;
+  group.userData.leafAnchorCount = skeleton.leaves.length;
+  group.userData.foliagePrimitiveCount = options.species === 'spruce' ? options.leafCount * 9 : options.leafCount;
   group.userData.barkVertexCount = barkGeometry.getAttribute('position').count;
   group.userData.barkTriangleCount = barkGeometry.index ? barkGeometry.index.count / 3 : 0;
   group.userData.barkBounds = barkGeometry.boundingBox ? barkGeometry.boundingBox.getSize(new THREE.Vector3()).toArray() : null;
@@ -698,7 +805,7 @@ export function createOakTree(seed = 101): THREE.Group {
     seed,
     height: 12.2,
     bounds: 6.45,
-    leafCount: 720,
+    leafCount: 4500,
   });
 }
 
@@ -708,6 +815,6 @@ export function createSpruceTree(seed = 203): THREE.Group {
     seed,
     height: 12.0,
     bounds: 3.8,
-    leafCount: 900,
+    leafCount: 850,
   });
 }

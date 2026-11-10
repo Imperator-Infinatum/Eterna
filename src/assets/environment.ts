@@ -44,9 +44,15 @@ function surfaceTexture(kind: SurfaceKind, seed: number): THREE.DataTexture {
       let intensity = 0.82 + (noise - 0.5) * 0.13;
 
       if (kind === 'bark') {
-        const grain = 0.5 + 0.5 * Math.sin(u * 230 + Math.sin(v * 14) * 7 + Math.sin(u * 19) * 2);
-        intensity = 0.72 + grain * 0.22 + (noise - 0.5) * 0.1;
-        if (Math.abs(Math.sin(u * 42 + Math.sin(v * 9) * 2)) > 0.985) intensity *= 0.68;
+        // Irregular longitudinal fibres and broken fissures; avoid the repeated horizontal banding of the first pass.
+        const warp = Math.sin(v * 11 + seed * 0.07 + Math.sin(u * 8) * 1.6)
+          + 0.38 * Math.sin(v * 29 - u * 5 + seed * 0.11);
+        const fibres = 0.5 + 0.5 * Math.sin(u * 148 + warp * 2.15 + Math.sin(u * 17 + v * 3) * 0.72);
+        const fissureSignal = Math.sin(u * 38 + Math.sin(v * 9 + seed) * 2.0 + Math.sin(v * 21 + u * 8) * 0.58);
+        const fissures = Math.pow(Math.max(0, fissureSignal), 11);
+        const mottling = 0.5 + 0.5 * Math.sin(u * 23 + Math.sin(v * 15) * 2.2);
+        intensity = 0.79 + fibres * 0.105 + mottling * 0.035 + (noise - 0.5) * 0.09 - fissures * 0.16;
+        if (noise > 0.996) intensity *= 0.88;
       } else if (kind === 'leaf') {
         intensity = 0.84 + broad * 0.12 + (noise - 0.5) * 0.08;
         if (noise > 0.985) intensity *= 0.78;
