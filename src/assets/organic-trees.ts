@@ -489,13 +489,16 @@ function makeOrganicSurface(
         for (const tet of tetrahedra) {
           const inside: number[] = [];
           const outside: number[] = [];
-          for (const corner of tet) {
-            (field[cubeIds[corner]] < 0 ? inside : outside).push(corner);
+          // Store tetrahedron-local indices (0..3), not cube-corner indices (0..7).
+          // The local indices are used to address the four-element ids array below.
+          for (let local = 0; local < 4; local++) {
+            const cubeCorner = tet[local];
+            (field[cubeIds[cubeCorner]] < 0 ? inside : outside).push(local);
           }
           if (inside.length === 0 || inside.length === 4) continue;
           const ids = [0, 0, 0, 0];
-          for (let i = 0; i < 4; i++) {
-            ids[i] = cubeIds[tet[i]];
+          for (let local = 0; local < 4; local++) {
+            ids[local] = cubeIds[tet[local]];
           }
 
           if (inside.length === 1) {

@@ -100,3 +100,7 @@ The first 0.3.1 gameplay capture showed that tree crowns were reading as isolate
 - Build each instanced grass tuft from three crossed curved ribbons, with higher patch density.
 
 The next browser acceptance capture must show a visible continuous trunk, branch unions and root flares, plus a full readable canopy at gameplay distance. Do not mark visual acceptance based on a successful TypeScript/Vite build alone.
+
+
+## Polygonizer validation and regression test
+The signed-distance-field polygonizer uses tetrahedron-local indices (0..3) independently of cube-corner indices (0..7). Never mix the two index spaces. The `scripts/audit-vegetation.ts` test builds a deterministic oak and spruce model and verifies finite positions/normals, plausible bounds, non-degenerate triangles, minimum geometry counts and populated foliage instances. It runs as part of the production build.

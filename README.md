@@ -35,4 +35,4 @@ The production site is emitted to dist/.
 ## Cloudflare
 This repository is currently configured for Cloudflare Workers Builds using Wrangler's Vite integration. See DEPLOYMENT.md for the exact dashboard settings and automatic configuration flow.
 
-Current art foundation: **0.3.2 — Vegetation Visibility Repair**. The Willowmere forest uses unified tree surfaces, individual foliage geometry, layered understorey and seeded forest stands.
+Current art foundation: **0.3.3 — Tree Bark Polygonizer Repair**. The Willowmere forest uses unified tree surfaces, individual foliage geometry, layered understorey and seeded forest stands.

@@ -91,3 +91,26 @@ Changes in this repair:
 - Grass geometry is now made of three crossed curved ribbons per instance rather than one flat ribbon, and the patch density/capacity is increased.
 
 The screenshot review has not yet been repeated after this repair. Acceptance requires a new close/gameplay/far browser capture showing unmistakable trunk-to-branch continuity, readable tree species, and fuller 3D ground cover. This repair should not be described as visually accepted until that playtest is complete.
+
+
+## 0.3.3 — Tree bark polygonizer repair (root cause verified)
+
+The 0.3.2 screenshot still showed no trunks. A new headless geometry audit generated the oak and spruce meshes and exposed the exact defect in the marching-tetrahedra polygonizer.
+
+The cube contains eight corner indices (0..7), while each tetrahedron has four local vertices (0..3). The polygonizer was storing cube-corner indices in its inside/outside arrays, then using those values to index a four-element tetrahedron-local ID array. Accesses for cube corners 4..7 therefore returned undefined, producing NaN vertex coordinates, invalid normals and NaN geometry bounds. The browser renderer received an unusable bark surface and culled it; the separate instanced foliage still rendered.
+
+The fix stores tetrahedron-local indices (0..3) in the inside/outside arrays, while mapping each local index to its corresponding cube corner only when building the four-element ID array.
+
+### Verified geometry audit (seed 101 oak, seed 203 spruce)
+| Metric | Oak | Spruce |
+|---|---:|---:|
+| Bark vertices | 20,560 | 15,924 |
+| Bark triangles | 41,040 | 31,796 |
+| Bounds X × Y × Z | 6.82 × 13.10 × 5.97 m | 4.03 × 12.67 × 4.48 m |
+| Invalid positions | 0 | 0 |
+| Invalid normals | 0 | 0 |
+| Non-degenerate triangles | 40,877 | 31,649 |
+
+The headless audit is now run by `npm run build`. It rejects non-finite geometry, implausible bounds, sparse/degenerate surfaces and missing foliage instances. This directly protects against the specific failure observed in the 0.3.1 and 0.3.2 playtests.
+
+A browser screenshot review is still required to visually accept the repaired trunks and branch unions.
