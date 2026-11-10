@@ -553,7 +553,7 @@ function createBarkHeightTexture(): THREE.DataTexture {
       const plates = Math.sin(tau * (u * 7.0 + warp * 0.07) + Math.sin(tau * v * 3.0) * 0.55);
       const fibres = Math.sin(tau * (u * 37.0 + warp * 0.12) + Math.sin(tau * (u * 4.0 + v * 2.0)) * 0.18);
       const fine = Math.sin(tau * (u * 113.0 + warp * 0.19) + Math.sin(tau * v * 11.0) * 0.2);
-      const crack = Math.pow(Math.max(0, Math.sin(tau * (u * 19.0 + Math.sin(tau * v * 2.0) * 0.055 + warp * 0.025)), 18);
+      const crack = Math.pow(Math.max(0, Math.sin(tau * (u * 19.0 + Math.sin(tau * v * 2.0) * 0.055 + warp * 0.025))), 18);
       const micro = Math.sin(tau * (u * 83.0 + v * 67.0)) * Math.cos(tau * (v * 91.0 - u * 29.0));
       const height = THREE.MathUtils.clamp(0.52 + plates * 0.075 + fibres * 0.09 + fine * 0.022 + micro * 0.018 - crack * 0.19, 0.12, 0.92);
       const value = Math.round(height * 255);
