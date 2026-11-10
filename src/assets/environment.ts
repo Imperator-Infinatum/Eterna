@@ -18,10 +18,10 @@ export interface EnvironmentPalette {
 type SurfaceKind = 'bark' | 'leaf' | 'plaster' | 'timber' | 'stone' | 'roof' | 'ground';
 
 function surfaceTexture(kind: SurfaceKind, seed: number): THREE.DataTexture {
-  const size = 256;
+  const size = kind === 'bark' ? 512 : 256;
   const pixels = new Uint8Array(size * size * 4);
   const base: Record<SurfaceKind, [number, number, number]> = {
-    bark: [218, 218, 210],
+    bark: [238, 226, 205],
     leaf: [224, 232, 210],
     plaster: [190, 172, 137],
     timber: [105, 72, 46],
@@ -44,15 +44,30 @@ function surfaceTexture(kind: SurfaceKind, seed: number): THREE.DataTexture {
       let intensity = 0.82 + (noise - 0.5) * 0.13;
 
       if (kind === 'bark') {
-        // Irregular longitudinal fibres and broken fissures; avoid the repeated horizontal banding of the first pass.
-        const warp = Math.sin(v * 11 + seed * 0.07 + Math.sin(u * 8) * 1.6)
-          + 0.38 * Math.sin(v * 29 - u * 5 + seed * 0.11);
-        const fibres = 0.5 + 0.5 * Math.sin(u * 148 + warp * 2.15 + Math.sin(u * 17 + v * 3) * 0.72);
-        const fissureSignal = Math.sin(u * 38 + Math.sin(v * 9 + seed) * 2.0 + Math.sin(v * 21 + u * 8) * 0.58);
-        const fissures = Math.pow(Math.max(0, fissureSignal), 11);
-        const mottling = 0.5 + 0.5 * Math.sin(u * 23 + Math.sin(v * 15) * 2.2);
-        intensity = 0.79 + fibres * 0.105 + mottling * 0.035 + (noise - 0.5) * 0.09 - fissures * 0.16;
-        if (noise > 0.996) intensity *= 0.88;
+        // Tileable, stylized longitudinal bark: broad plates, split ridges, pinched knots and fine fibres.
+        const tau = Math.PI * 2;
+        const warp = Math.sin(tau * (v * 2.0 + seed * 0.013) + Math.sin(tau * (u * 3.0 + 0.13)) * 0.62)
+          + 0.32 * Math.sin(tau * (v * 5.0 - u * 1.5 + seed * 0.007));
+        const plate = 0.5 + 0.5 * Math.sin(tau * (u * 7.0 + warp * 0.07) + Math.sin(tau * v * 3.0) * 0.55);
+        const fibres = 0.5 + 0.5 * Math.sin(tau * (u * 37.0 + warp * 0.12) + Math.sin(tau * (u * 4.0 + v * 2.0)) * 0.18);
+        const hairline = 0.5 + 0.5 * Math.sin(tau * (u * 113.0 + warp * 0.19) + Math.sin(tau * v * 11.0) * 0.2);
+        const crackSignal = Math.sin(tau * (u * 19.0 + Math.sin(tau * v * 2.0) * 0.055 + warp * 0.025));
+        const cracks = Math.pow(Math.max(0, crackSignal), 18);
+        const grainNoise = 0.5 + 0.5 * Math.sin(tau * (u * 83.0 + v * 67.0)) * Math.cos(tau * (v * 91.0 - u * 29.0));
+        const knotCenters = [[0.19, 0.27], [0.68, 0.73], [0.88, 0.14]] as const;
+        let knots = 0;
+        for (const [kx, ky] of knotCenters) {
+          const dx = Math.abs(u - kx);
+          const dy = Math.abs(v - ky);
+          const wrappedX = Math.min(dx, 1 - dx);
+          const wrappedY = Math.min(dy, 1 - dy);
+          const distance = Math.sqrt(wrappedX * wrappedX * 0.72 + wrappedY * wrappedY * 1.35);
+          const ring = 0.5 + 0.5 * Math.cos(distance * 145.0 + warp * 0.6);
+          knots += Math.exp(-distance * 19.0) * (ring * 0.11 - 0.075);
+        }
+        intensity = 0.77 + plate * 0.075 + fibres * 0.105 + hairline * 0.025
+          + grainNoise * 0.035 + knots - cracks * 0.19;
+        intensity = THREE.MathUtils.clamp(intensity, 0.42, 1.12);
       } else if (kind === 'leaf') {
         intensity = 0.84 + broad * 0.12 + (noise - 0.5) * 0.08;
         if (noise > 0.985) intensity *= 0.78;
@@ -522,11 +537,78 @@ export function createMossyBoulder(seed = 503, radius = 1): THREE.Mesh {
   return rock;
 }
 
+let cachedBarkHeightTexture: THREE.DataTexture | null = null;
+
+function createBarkHeightTexture(): THREE.DataTexture {
+  if (cachedBarkHeightTexture) return cachedBarkHeightTexture;
+  const size = 512;
+  const pixels = new Uint8Array(size * size * 4);
+  const tau = Math.PI * 2;
+  for (let y = 0; y < size; y++) {
+    const v = y / size;
+    for (let x = 0; x < size; x++) {
+      const u = x / size;
+      const warp = Math.sin(tau * v * 2.0 + Math.sin(tau * u * 3.0) * 0.62)
+        + 0.32 * Math.sin(tau * (v * 5.0 - u * 1.5));
+      const plates = Math.sin(tau * (u * 7.0 + warp * 0.07) + Math.sin(tau * v * 3.0) * 0.55);
+      const fibres = Math.sin(tau * (u * 37.0 + warp * 0.12) + Math.sin(tau * (u * 4.0 + v * 2.0)) * 0.18);
+      const fine = Math.sin(tau * (u * 113.0 + warp * 0.19) + Math.sin(tau * v * 11.0) * 0.2);
+      const crack = Math.pow(Math.max(0, Math.sin(tau * (u * 19.0 + Math.sin(tau * v * 2.0) * 0.055 + warp * 0.025))), 18);
+      const micro = Math.sin(tau * (u * 83.0 + v * 67.0)) * Math.cos(tau * (v * 91.0 - u * 29.0));
+      const height = THREE.MathUtils.clamp(0.52 + plates * 0.075 + fibres * 0.09 + fine * 0.022 + micro * 0.018 - crack * 0.19, 0.12, 0.92);
+      const value = Math.round(height * 255);
+      const index = (y * size + x) * 4;
+      pixels[index] = pixels[index + 1] = pixels[index + 2] = value;
+      pixels[index + 3] = 255;
+    }
+  }
+  const texture = new THREE.DataTexture(pixels, size, size, THREE.RGBAFormat);
+  texture.colorSpace = THREE.NoColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  texture.name = 'Eterna_Stylized_Bark_Height_512';
+  cachedBarkHeightTexture = texture;
+  return texture;
+}
+
+function configureBarkDataTexture(texture: THREE.Texture): THREE.Texture {
+  texture.colorSpace = THREE.NoColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+let cachedBarkPbrMaps: { roughnessMap: THREE.Texture; aoMap: THREE.Texture } | null = null;
+
+function loadBarkPbrMaps(): { roughnessMap: THREE.Texture; aoMap: THREE.Texture } | null {
+  // The mesh audit runs in Node without a DOM. Keep its material generation headless-safe;
+  // the actual browser scene loads the CC0 PBR maps when a document is available.
+  if (typeof document === 'undefined') return null;
+  if (cachedBarkPbrMaps) return cachedBarkPbrMaps;
+  const loader = new THREE.TextureLoader();
+  cachedBarkPbrMaps = {
+    roughnessMap: configureBarkDataTexture(loader.load('/assets/textures/bark/Bark012_1K_Roughness.jpg')),
+    aoMap: configureBarkDataTexture(loader.load('/assets/textures/bark/Bark012_1K_AO.jpg')),
+  };
+  return cachedBarkPbrMaps;
+}
+
 export function createOrganicBarkMaterial(): THREE.MeshStandardMaterial {
+  const pbr = loadBarkPbrMaps();
   return new THREE.MeshStandardMaterial({
     color: '#ffffff',
     map: surfaceTexture('bark', 79),
-    roughness: 0.92,
+    roughness: 0.94,
+    ...(pbr ? { roughnessMap: pbr.roughnessMap, aoMap: pbr.aoMap, aoMapIntensity: 0.38 } : {}),
+    bumpMap: createBarkHeightTexture(),
+    bumpScale: 0.055,
     vertexColors: true,
     side: THREE.DoubleSide,
   });

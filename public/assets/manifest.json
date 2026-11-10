@@ -11,7 +11,7 @@
       "status": "approved",
       "authoringPath": "src/assets/organic-trees.ts#createOakTree",
       "attribution": "Original Eterna mesh authored for this project",
-      "notes": "One continuous smooth-union SDF/marching-tetrahedra bark surface containing trunk, irregular primary/secondary/tertiary branches and buttress roots; clear-bole growth rules with at most one low scaffold branch on minority variants; six-to-eight scaffold limbs with separated heights and varied length; 4,500 instanced curved broadleaf leaves with upper-crown coverage."
+      "notes": "One continuous smooth-union SDF/marching-tetrahedra bark surface containing trunk, irregular primary/secondary/tertiary branches and buttress roots; clear-bole growth rules with at most one low scaffold branch on minority variants; six-to-eight scaffold limbs with separated heights and varied length; 5,800 instanced lobed oak leaves per template with cupped lamina, raised midrib and paired veins, distributed across primary, secondary and terminal branches."
     },
     {
       "id": "eterna.vegetation.willowmere.organic-spruce",
@@ -22,7 +22,7 @@
       "status": "approved",
       "authoringPath": "src/assets/organic-trees.ts#createSpruceTree",
       "attribution": "Original Eterna mesh authored for this project",
-      "notes": "Continuous trunk/branch/root surface with 9–12 irregular whorls; clear bole on most variants and a low skirt on minority variants; varied branch length; 850 instanced needle sprays, each spray formed from nine individual tapered, curved needles."
+      "notes": "Continuous trunk/branch/root surface with 9–12 irregular whorls; clear bole on most variants and a low skirt on minority variants; varied branch length; 850 instanced 3D needle sprays per template, each spray formed from nine individually modelled tapered, curved needles."
     },
     {
       "id": "eterna.environment.willowmere.cottage.01",
@@ -129,6 +129,17 @@
       "authoringPath": "src/assets/understory.ts#makeFlowers",
       "attribution": "Original Eterna vegetation mesh authored for this project",
       "notes": "Instanced flower stems, five individually oriented petals and flower centres with varied palette tints."
+    },
+    {
+      "id": "ambientcg.bark012.pbr-support-maps",
+      "name": "Bark 012 PBR support maps",
+      "kind": "external",
+      "creator": "ambientCG",
+      "licence": "CC0 1.0 Universal",
+      "status": "approved",
+      "sourceUrl": "https://ambientcg.com/view?id=Bark012",
+      "attribution": "ambientCG Bark012 (CC0 1.0). Included maps are the 1K Ambient Occlusion and Roughness maps; attribution is not required but is recorded as courtesy.",
+      "notes": "AO and roughness maps are bundled under public/assets/textures/bark/. Eterna's bark base colour and height/bump field are generated in-house at 512px with stylized longitudinal plates, knots, fibres and fissures. No ambientCG base-colour, normal or displacement map is bundled."
     }
   ],
   "externalCandidates": [

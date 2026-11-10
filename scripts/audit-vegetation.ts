@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { readFile } from 'node:fs/promises';
 import { createOakTree, createSpruceTree } from '../src/assets/organic-trees.ts';
 
 interface MeshReport {
@@ -121,14 +122,14 @@ function inspectTree(species: 'oak' | 'spruce', seed: number, tree: THREE.Group)
   if (invalidPositions > 0 || invalidNormals > 0) {
     throw new Error(`${species} seed ${seed}: bark mesh contains non-finite vertex data`);
   }
-  const minimumFoliage = species === 'oak' ? 4000 : 750;
+  const minimumFoliage = species === 'oak' ? 5500 : 750;
   if (report.leafInstances < minimumFoliage) {
     throw new Error(`${species} seed ${seed}: foliage instance count is below the species budget`);
   }
   if (branchOriginsBelowThreshold > 1) {
     throw new Error(`${species} seed ${seed}: too many scaffold branches originate in the clear-bole zone`);
   }
-  const minimumUpper = species === 'oak' ? 650 : 140;
+  const minimumUpper = species === 'oak' ? 800 : 140;
   const minimumSectors = species === 'oak' ? 6 : 5;
   if (upperCrownInstances < minimumUpper || sectors.size < minimumSectors) {
     throw new Error(`${species} seed ${seed}: canopy does not adequately cover upper crown sectors`);
@@ -146,3 +147,15 @@ for (const seed of oakSeeds) reports.push(inspectTree('oak', seed, createOakTree
 for (const seed of spruceSeeds) reports.push(inspectTree('spruce', seed, createSpruceTree(seed)));
 
 console.log(`[vegetation:audit] PASS: ${reports.length} production tree templates satisfy bark integrity, clear-bole and canopy coverage checks.`);
+
+const requiredBarkMaps = [
+  'public/assets/textures/bark/Bark012_1K_AO.jpg',
+  'public/assets/textures/bark/Bark012_1K_Roughness.jpg',
+  'public/assets/textures/bark/Bark012_source.json',
+];
+for (const path of requiredBarkMaps) {
+  const file = await readFile(new URL('../' + path, import.meta.url));
+  if (file.byteLength < 100) throw new Error(`Bark material asset is missing or empty: ${path}`);
+  console.log(`[vegetation:audit] material asset OK: ${path} (${file.byteLength.toLocaleString()} bytes)`);
+}
+console.log('[vegetation:audit] PASS: CC0 bark PBR support maps are present.');

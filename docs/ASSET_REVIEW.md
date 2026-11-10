@@ -146,3 +146,22 @@ The production vegetation audit now instantiates every tree seed used by Willowm
 - upper-crown foliage and coverage across multiple radial sectors.
 
 Visual acceptance still requires a new browser comparison at close, gameplay and top-down/far views. The audit verifies structural distribution and coverage metrics, not artistic quality by itself.
+
+
+## 0.3.5 — Bark material and canopy refinement
+
+### Bark PBR
+- Added ambientCG Bark012 Ambient Occlusion and Roughness maps (1K JPG, CC0 1.0), stored locally in `public/assets/textures/bark/`.
+- Eterna retains ownership of the stylized base-colour and height layers: the colour field is generated at 512px with tileable longitudinal plates, warped fibres, broken fissures, knots and fine grain; the height field is generated at 512px and drives the bump response.
+- The bark material now uses the CC0 roughness/AO maps plus in-house bump detail, with AO kept deliberately subtle so trunks do not become black or muddy.
+- Generated bark UVs also provide `uv2` for AO and receive deterministic per-seed offsets to reduce obvious repeated alignment.
+
+### Oak canopy
+- Raised oak foliage budget from 4,500 to 5,800 instanced leaf meshes per template.
+- Added branch-level leaf anchors along primary and secondary scaffolds, not only at outer twig tips.
+- Reworked the leaf surface into a gently cupped, lobed oak blade with a raised midrib and paired lateral veins integrated into the same geometry.
+- Reduced cluster scatter radius slightly while increasing individual leaf length to encourage overlapping canopy coverage.
+- Updated the seven-template audit to enforce the new foliage budget and confirm CC0 Bark012 AO/roughness map files are present.
+
+### Performance
+The additional 1,300 leaf instances and higher-detail leaf mesh increase geometry cost. We must profile camera-visible tree counts and frame time before a larger forest expansion; the next performance pass should use near/mid/far foliage LOD or per-instance density reduction rather than deleting close-up leaf detail.
