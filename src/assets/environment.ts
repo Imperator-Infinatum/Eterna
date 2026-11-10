@@ -351,11 +351,10 @@ export function createVillageWell(seed = 419): THREE.Group {
   const random = seeded(seed);
   const well = new THREE.Group();
   well.name = 'Eterna_Willowmere_Well';
-  const stoneMaterial = new THREE.MeshStandardMaterial({ color: '#918c79', roughness: 0.98 });
+  const stoneMaterial = new THREE.MeshStandardMaterial({ color: '#918c79', roughness: 0.98, side: THREE.DoubleSide });
   const timberMaterial = new THREE.MeshStandardMaterial({ color: '#563822', roughness: 0.92 });
   const waterMaterial = new THREE.MeshStandardMaterial({ color: '#477f7b', roughness: 0.3, metalness: 0.08 });
-  const ring = addMesh(well, new THREE.CylinderGeometry(1.05, 1.18, 0.85, 14, 1, true), stoneMaterial, new THREE.Vector3(0, 0.65, 0));
-  ring.material.side = THREE.DoubleSide;
+  addMesh(well, new THREE.CylinderGeometry(1.05, 1.18, 0.85, 14, 1, true), stoneMaterial, new THREE.Vector3(0, 0.65, 0));
   addMesh(well, new THREE.CircleGeometry(0.98, 32), waterMaterial, new THREE.Vector3(0, 0.69, 0), false).rotation.x = -Math.PI / 2;
   for (const side of [-1, 1]) {
     addMesh(well, new THREE.BoxGeometry(0.18, 2.45, 0.2), timberMaterial, new THREE.Vector3(side * 0.9, 1.9, 0));
