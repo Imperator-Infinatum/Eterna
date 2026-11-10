@@ -3,6 +3,7 @@ import { createOakTree, createSpruceTree } from '../src/assets/organic-trees.ts'
 
 interface MeshReport {
   species: string;
+  seed: number;
   barkVertices: number;
   barkTriangles: number;
   bounds: [number, number, number];
@@ -12,22 +13,29 @@ interface MeshReport {
   invalidNormals: number;
   nonDegenerateTriangles: number;
   leafInstances: number;
+  foliagePrimitiveCount: number;
+  leafAnchors: number;
+  upperCrownInstances: number;
+  occupiedCanopySectors: number;
+  minFoliageY: number;
+  maxFoliageY: number;
+  branchOriginsBelowThreshold: number;
 }
 
-function inspectTree(species: 'oak' | 'spruce', tree: THREE.Group): MeshReport {
+function inspectTree(species: 'oak' | 'spruce', seed: number, tree: THREE.Group): MeshReport {
   const bark = tree.children.find((child) => child.name.startsWith('Unified_')) as THREE.Mesh | undefined;
   if (!bark || !(bark.geometry instanceof THREE.BufferGeometry)) {
-    throw new Error(`${species}: missing unified bark mesh`);
+    throw new Error(`${species} seed ${seed}: missing unified bark mesh`);
   }
   const geometry = bark.geometry;
   const positions = geometry.getAttribute('position');
   const normals = geometry.getAttribute('normal');
   const index = geometry.index;
-  if (!positions || !normals || !index) throw new Error(`${species}: bark mesh is missing position, normal or index data`);
+  if (!positions || !normals || !index) throw new Error(`${species} seed ${seed}: bark mesh is missing position, normal or index data`);
 
   geometry.computeBoundingBox();
   const bounds = geometry.boundingBox;
-  if (!bounds) throw new Error(`${species}: bark mesh has no bounds`);
+  if (!bounds) throw new Error(`${species} seed ${seed}: bark mesh has no bounds`);
 
   let invalidPositions = 0;
   let invalidNormals = 0;
@@ -47,9 +55,40 @@ function inspectTree(species: 'oak' | 'spruce', tree: THREE.Group): MeshReport {
     if (b.sub(a).cross(c.sub(a)).lengthSq() > 1e-12) nonDegenerateTriangles++;
   }
 
-  const foliage = tree.children.find((child) => child instanceof THREE.InstancedMesh && child.name.includes('Leaves') || child instanceof THREE.InstancedMesh && child.name.includes('Needles')) as THREE.InstancedMesh | undefined;
+  const foliage = tree.children.find((child) => child instanceof THREE.InstancedMesh) as THREE.InstancedMesh | undefined;
+  if (!foliage) throw new Error(`${species} seed ${seed}: missing instanced foliage`);
+  const treeHeight = Number(tree.userData.treeHeight);
+  const branchOriginHeights = Array.isArray(tree.userData.branchOriginHeights)
+    ? tree.userData.branchOriginHeights as number[]
+    : [];
+  if (branchOriginHeights.length < 5) throw new Error(`${species} seed ${seed}: missing branch-origin metadata`);
+  const lowThreshold = treeHeight * (species === 'oak' ? 0.4 : 0.25);
+  const branchOriginsBelowThreshold = branchOriginHeights.filter((height) => height < lowThreshold).length;
+
+  const matrix = new THREE.Matrix4();
+  let upperCrownInstances = 0;
+  let minFoliageY = Infinity;
+  let maxFoliageY = -Infinity;
+  const sectors = new Set<number>();
+  for (let i = 0; i < foliage.count; i++) {
+    foliage.getMatrixAt(i, matrix);
+    const e = matrix.elements;
+    const x = e[12];
+    const y = e[13];
+    const z = e[14];
+    minFoliageY = Math.min(minFoliageY, y);
+    maxFoliageY = Math.max(maxFoliageY, y);
+    if (y >= treeHeight * 0.68) upperCrownInstances++;
+    if (y >= treeHeight * 0.54 && Math.hypot(x, z) >= 1.15) {
+      const angle = Math.atan2(z, x);
+      const sector = Math.floor(((angle + Math.PI) / (Math.PI * 2)) * 8) % 8;
+      sectors.add(sector);
+    }
+  }
+
   const report: MeshReport = {
     species,
+    seed,
     barkVertices: positions.count,
     barkTriangles: index.count / 3,
     bounds: [
@@ -62,23 +101,48 @@ function inspectTree(species: 'oak' | 'spruce', tree: THREE.Group): MeshReport {
     invalidPositions,
     invalidNormals,
     nonDegenerateTriangles,
-    leafInstances: foliage?.count ?? 0,
+    leafInstances: foliage.count,
+    foliagePrimitiveCount: Number(tree.userData.foliagePrimitiveCount ?? foliage.count),
+    leafAnchors: Number(tree.userData.leafAnchorCount ?? 0),
+    upperCrownInstances,
+    occupiedCanopySectors: sectors.size,
+    minFoliageY,
+    maxFoliageY,
+    branchOriginsBelowThreshold,
   };
 
-  console.log(`[vegetation:audit] ${species}: ${JSON.stringify(report)}`);
+  console.log(`[vegetation:audit] ${species} seed ${seed}: ${JSON.stringify(report)}`);
   if (report.barkVertices < 1000 || report.barkTriangles < 1000 || nonDegenerateTriangles < 1000) {
-    throw new Error(`${species}: generated bark mesh is empty or unexpectedly sparse`);
+    throw new Error(`${species} seed ${seed}: generated bark mesh is empty or unexpectedly sparse`);
   }
   if (report.bounds[1] < 5 || report.bounds[0] < 1 || report.bounds[2] < 1) {
-    throw new Error(`${species}: bark mesh bounds are implausible`);
+    throw new Error(`${species} seed ${seed}: bark mesh bounds are implausible`);
   }
   if (invalidPositions > 0 || invalidNormals > 0) {
-    throw new Error(`${species}: bark mesh contains non-finite vertex data`);
+    throw new Error(`${species} seed ${seed}: bark mesh contains non-finite vertex data`);
   }
-  if (report.leafInstances < 100) throw new Error(`${species}: foliage instance budget was not populated`);
+  const minimumFoliage = species === 'oak' ? 4000 : 750;
+  if (report.leafInstances < minimumFoliage) {
+    throw new Error(`${species} seed ${seed}: foliage instance count is below the species budget`);
+  }
+  if (branchOriginsBelowThreshold > 1) {
+    throw new Error(`${species} seed ${seed}: too many scaffold branches originate in the clear-bole zone`);
+  }
+  const minimumUpper = species === 'oak' ? 650 : 140;
+  const minimumSectors = species === 'oak' ? 6 : 5;
+  if (upperCrownInstances < minimumUpper || sectors.size < minimumSectors) {
+    throw new Error(`${species} seed ${seed}: canopy does not adequately cover upper crown sectors`);
+  }
+  if (maxFoliageY < treeHeight * 0.78 || minFoliageY < 0.2) {
+    throw new Error(`${species} seed ${seed}: foliage vertical coverage is implausible`);
+  }
   return report;
 }
 
-const oak = inspectTree('oak', createOakTree(101));
-const spruce = inspectTree('spruce', createSpruceTree(203));
-console.log(`[vegetation:audit] PASS: oak ${oak.barkTriangles.toLocaleString()} triangles; spruce ${spruce.barkTriangles.toLocaleString()} triangles.`);
+const oakSeeds = [101, 173, 251, 311];
+const spruceSeeds = [203, 277, 331];
+const reports: MeshReport[] = [];
+for (const seed of oakSeeds) reports.push(inspectTree('oak', seed, createOakTree(seed)));
+for (const seed of spruceSeeds) reports.push(inspectTree('spruce', seed, createSpruceTree(seed)));
+
+console.log(`[vegetation:audit] PASS: ${reports.length} production tree templates satisfy bark integrity, clear-bole and canopy coverage checks.`);

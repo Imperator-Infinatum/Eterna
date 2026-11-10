@@ -114,3 +114,35 @@ The fix stores tetrahedron-local indices (0..3) in the inside/outside arrays, wh
 The headless audit is now run by `npm run build`. It rejects non-finite geometry, implausible bounds, sparse/degenerate surfaces and missing foliage instances. This directly protects against the specific failure observed in the 0.3.1 and 0.3.2 playtests.
 
 A browser screenshot review is still required to visually accept the repaired trunks and branch unions.
+
+
+## 0.3.4 — Crown growth and canopy closure
+
+### Screenshot-driven findings
+The 0.3.3 capture confirmed the continuous bark surfaces were now visible. It also showed two remaining art-direction issues:
+- Some trees had too many scaffold branches originating low on the trunk, weakening the distinction between buttress roots and the clear bole.
+- Leaf instances were still distributed as small terminal decorations. The tree had a visible branch structure but did not form a continuous crown when viewed from above.
+
+### Growth-rule changes
+- Most oaks keep a clear lower bole; only a minority has one lower scaffold limb. Oak primary branch origins are separated vertically, with a deliberately high crown branch to close the top of the canopy.
+- Most spruce variants keep a visible lower trunk; a minority has a low skirt. Branch whorl count and heights vary, and branch spacing is separated.
+- Primary and secondary branch lengths, split positions, sweep and curvature have wider ranges.
+
+### Foliage changes
+- Oak leaves are now curved, tapered, pointed and slightly cupped meshes with a raised midrib rather than flat seven-point polygons.
+- Oak foliage budget increases from 720 to 4,500 individual leaf instances per template.
+- Leaf anchors are distributed along the primary scaffold, secondary limbs and terminal twigs. Their positions form compact overlapping clusters rather than isolated terminal sprays.
+- Spruce foliage instances are now 3D needle sprays. Each spray contains nine individually modelled tapered needles, distributed along the full bough and secondary branches.
+- Oak and spruce upper crowns are explicitly checked for instance count and angular-sector coverage.
+
+### Bark surface refinement
+The bark surface map now uses warped longitudinal fibres, broken fissures and mottling, reducing the repeated horizontal striping visible in the first procedural material.
+
+### Regression checks
+The production vegetation audit now instantiates every tree seed used by Willowmere and checks:
+- no more than one scaffold origin in the designated lower-bole zone;
+- finite bark vertices/normals, meaningful bounds and non-degenerate faces;
+- minimum foliage budgets;
+- upper-crown foliage and coverage across multiple radial sectors.
+
+Visual acceptance still requires a new browser comparison at close, gameplay and top-down/far views. The audit verifies structural distribution and coverage metrics, not artistic quality by itself.
