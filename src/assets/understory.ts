@@ -344,7 +344,8 @@ export function createUnderstory(
   for (let i = 0; i < grassInstances.length; i++) {
     grassInstances[i].count = used[i];
     grassInstances[i].instanceMatrix.needsUpdate = true;
-    if (grassInstances[i].instanceColor) grassInstances[i].instanceColor.needsUpdate = true;
+    const instanceColor = grassInstances[i].instanceColor;
+    if (instanceColor) instanceColor.needsUpdate = true;
     scene.add(grassInstances[i]);
   }
 
