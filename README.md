@@ -7,7 +7,7 @@ This independent project does not include Blizzard code, extracted game files, m
 ## Stack
 - TypeScript, Three.js and Vite.
 - glTF / GLB for authored 3D assets.
-- Cloudflare Pages for static hosting.
+- Cloudflare Workers Builds for Git-connected deployment and static asset delivery.
 
 ## Current foundation
 - Elevated perspective follow camera with smooth tracking, middle-mouse orbit and wheel zoom.
@@ -30,11 +30,5 @@ Open the URL printed by Vite, normally http://localhost:5173.
 
 The production site is emitted to dist/.
 
-## Cloudflare Pages
-- Framework preset: Vite
-- Build command: npm run build
-- Build output directory: dist
-- Root directory: /
-- Production branch: main
-
-See DEPLOYMENT.md for the setup checklist.
+## Cloudflare
+This repository is currently configured for Cloudflare Workers Builds using Wrangler's Vite integration. See DEPLOYMENT.md for the exact dashboard settings and automatic configuration flow.

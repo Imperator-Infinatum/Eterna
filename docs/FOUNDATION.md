@@ -14,7 +14,7 @@ Core palette:
 Production assets require a reference sheet, gameplay scale, silhouette check, material key, LOD plan and licence record.
 
 ## Technical design
-TypeScript provides application and gameplay code; Three.js provides rendering, scene graph, camera and materials; Vite provides development and production bundling; glTF/GLB is the preferred interchange format; Cloudflare Pages provides static hosting.
+TypeScript provides application and gameplay code; Three.js provides rendering, scene graph, camera and materials; Vite provides development and production bundling; glTF/GLB is the preferred interchange format. Cloudflare Workers Builds and Wrangler deploy the Vite application as a Worker with static assets.
 
 Runtime boundaries:
 - src/main.ts: app composition, renderer, resize and update loop.
