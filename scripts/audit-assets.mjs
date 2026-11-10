@@ -4,7 +4,7 @@ const manifest = JSON.parse(await readFile(new URL('../public/assets/manifest.js
 const errors = [];
 const ids = new Set();
 
-function validateAsset(asset, location) {
+async function validateAsset(asset, location) {
   for (const field of ['id', 'name', 'kind', 'creator', 'licence', 'status']) {
     if (typeof asset[field] !== 'string' || asset[field].trim().length === 0) {
       errors.push(`${location}: missing ${field}`);
@@ -19,14 +19,28 @@ function validateAsset(asset, location) {
   if (asset.status === 'approved' && asset.kind === 'external' && !asset.attribution) {
     errors.push(`${location}: approved external asset needs attribution guidance`);
   }
+
+  if (asset.kind === 'procedural' && asset.status === 'approved') {
+    if (typeof asset.authoringPath !== 'string' || !asset.authoringPath.includes('#')) {
+      errors.push(`${location}: approved procedural asset needs a source path and symbol`);
+      return;
+    }
+    const [sourcePath, symbol] = asset.authoringPath.split('#', 2);
+    try {
+      const source = await readFile(new URL('../' + sourcePath, import.meta.url), 'utf8');
+      if (!source.includes(symbol)) errors.push(`${location}: source symbol "${symbol}" not found in ${sourcePath}`);
+    } catch {
+      errors.push(`${location}: source file not found: ${sourcePath}`);
+    }
+  }
 }
 
 if (manifest.project !== 'Eterna') errors.push('manifest project must be Eterna');
 if (!Array.isArray(manifest.assets) || !Array.isArray(manifest.externalCandidates)) {
   errors.push('manifest must include assets and externalCandidates arrays');
 } else {
-  manifest.assets.forEach((asset, index) => validateAsset(asset, `assets[${index}]`));
-  manifest.externalCandidates.forEach((asset, index) => validateAsset(asset, `externalCandidates[${index}]`));
+  for (let i = 0; i < manifest.assets.length; i++) await validateAsset(manifest.assets[i], `assets[${i}]`);
+  for (let i = 0; i < manifest.externalCandidates.length; i++) await validateAsset(manifest.externalCandidates[i], `externalCandidates[${i}]`);
 }
 
 if (errors.length) {

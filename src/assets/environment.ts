@@ -515,3 +515,50 @@ export function createMossyBoulder(seed = 503, radius = 1): THREE.Mesh {
   rock.userData.assetId = 'eterna.environment.willowmere.mossy-boulder.01';
   return rock;
 }
+
+export function createOrganicBarkMaterial(): THREE.MeshStandardMaterial {
+  return new THREE.MeshStandardMaterial({
+    color: '#ffffff',
+    map: surfaceTexture('bark', 79),
+    roughness: 0.95,
+    vertexColors: true,
+  });
+}
+
+const foliageWindTime = { value: 0 };
+
+export function updateFoliageWind(time: number): void {
+  foliageWindTime.value = time;
+}
+
+export function createOrganicLeafMaterial(): THREE.MeshStandardMaterial {
+  const material = new THREE.MeshStandardMaterial({
+    color: '#ffffff',
+    map: surfaceTexture('leaf', 83),
+    roughness: 0.91,
+    vertexColors: true,
+    side: THREE.DoubleSide,
+  });
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.eternaWindTime = foliageWindTime;
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      '#include <common>\nuniform float eternaWindTime;',
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>
+#ifdef USE_INSTANCING
+      float eternaLeafPhase = instanceMatrix[3].x * 0.72 + instanceMatrix[3].z * 0.61;
+#else
+      float eternaLeafPhase = 0.0;
+#endif
+      float eternaLeafWave = sin(eternaWindTime * 0.0010 + eternaLeafPhase + position.y * 2.2);
+      transformed.x += eternaLeafWave * 0.026 * position.y * position.y;
+      transformed.z += cos(eternaWindTime * 0.00083 + eternaLeafPhase) * 0.012 * position.y * position.y;`,
+    );
+  };
+  material.customProgramCacheKey = () => 'eterna-organic-leaf-wind-v1';
+  return material;
+}
+

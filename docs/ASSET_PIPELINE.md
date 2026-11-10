@@ -52,3 +52,7 @@ These are initial web-game budgets, not universal rules:
 3. Material and colour treatment approved.
 4. LOD and performance checked at gameplay camera distances.
 5. Asset is added to the manifest and passes the automated audit.
+
+
+## Vegetation production pipeline
+See [VEGETATION_PIPELINE.md](VEGETATION_PIPELINE.md) for the organic tree growth/meshing method, foliage and ground-cover construction, performance budgets, visual acceptance checks and Blender authoring references. Runtime meshes are original procedural assets; external packs remain candidates until individually approved and recorded in the asset register.
