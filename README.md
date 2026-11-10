@@ -13,7 +13,9 @@ This independent project does not include Blizzard code, extracted game files, m
 - Elevated perspective follow camera with smooth tracking, middle-mouse orbit and wheel zoom.
 - Warcraft-inspired point-and-click movement: left-click to select the hero, right-click terrain to move, and use the minimap for movement orders.
 - Procedural terrain, forest canopies, timber cottages, a ruined watch, pond, road and rock scatter.
-- Original placeholder geometry and a documented path toward production art assets.
+- Original detailed procedural Willowmere assets: layered oak and spruce models, timber cottage with instanced roof shingles, stone foundations, well, fences, lanterns and mossy boulders.
+- A GLB import helper, asset manifest and automated licence/provenance audit.
+- The art benchmark and production asset pipeline are documented in docs/ASSET_REVIEW.md and docs/ASSET_PIPELINE.md.
 
 ## Run locally
 Requires Node.js 22.12+ and npm 10+.
