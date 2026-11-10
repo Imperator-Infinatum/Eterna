@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { WorldLandmark, WorldScene } from './types';
 import {
   createFenceRun,
+  createGroundMaterial,
   createLanternPost,
   createMossyBoulder,
   createOakTree,
@@ -76,7 +77,7 @@ function makeTerrain(): THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMater
 
   const terrain = new THREE.Mesh(
     geometry,
-    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 }),
+    createGroundMaterial(),
   );
   terrain.receiveShadow = true;
   terrain.name = 'Eterna_Terrain_Willowmere';

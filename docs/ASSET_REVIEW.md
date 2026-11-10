@@ -36,5 +36,9 @@ Reference: https://lemonsky.artstation.com/projects/8B3Xbw
 - The village does not become visually noisy: roads, entrances and interactable space stay clear.
 - Repeated assets share geometry/materials or use instancing where possible.
 
+## First texture pass (0.2.1)
+
+The environment kit now includes deterministic 256px procedural DataTexture maps for bark grain, leaf mottling, plaster, timber grain, stone, terracotta roof seams and ground breakup. Custom trunk/canopy geometry has UVs. The road and terrain retain vertex-colour gradients, while material maps introduce finer surface variation. These textures are original runtime-generated maps, not external image files.
+
 ## Review cadence
 At the end of every environment/character asset milestone, capture the same camera positions and review close, medium and far distances against Warcraft III: Reforged and relevant World of Warcraft zones. Record strengths, gaps, performance and the next concrete asset changes. Do not claim equivalence to a reference title; the comparison is a quality-direction tool.

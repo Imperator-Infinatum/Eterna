@@ -15,17 +15,94 @@ export interface EnvironmentPalette {
   warmGlow: THREE.MeshStandardMaterial;
 }
 
+type SurfaceKind = 'bark' | 'leaf' | 'plaster' | 'timber' | 'stone' | 'roof' | 'ground';
+
+function surfaceTexture(kind: SurfaceKind, seed: number): THREE.DataTexture {
+  const size = 256;
+  const pixels = new Uint8Array(size * size * 4);
+  const base: Record<SurfaceKind, [number, number, number]> = {
+    bark: [218, 218, 210],
+    leaf: [224, 232, 210],
+    plaster: [190, 172, 137],
+    timber: [105, 72, 46],
+    stone: [137, 135, 121],
+    roof: [132, 68, 48],
+    ground: [130, 143, 96],
+  };
+  const hash = (x: number, y: number): number => {
+    const value = Math.sin(x * 127.1 + y * 311.7 + seed * 74.7) * 43758.5453;
+    return value - Math.floor(value);
+  };
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const u = x / size;
+      const v = y / size;
+      const noise = hash(x, y);
+      const broad = 0.5 + 0.5 * Math.sin(u * 31 + Math.sin(v * 17 + seed) * 2.4);
+      const fine = 0.5 + 0.5 * Math.sin((u * 190) + Math.sin(v * 21) * 3.2);
+      let intensity = 0.82 + (noise - 0.5) * 0.13;
+
+      if (kind === 'bark') {
+        const grain = 0.5 + 0.5 * Math.sin(u * 230 + Math.sin(v * 14) * 7 + Math.sin(u * 19) * 2);
+        intensity = 0.72 + grain * 0.22 + (noise - 0.5) * 0.1;
+        if (Math.abs(Math.sin(u * 42 + Math.sin(v * 9) * 2)) > 0.985) intensity *= 0.68;
+      } else if (kind === 'leaf') {
+        intensity = 0.84 + broad * 0.12 + (noise - 0.5) * 0.08;
+        if (noise > 0.985) intensity *= 0.78;
+      } else if (kind === 'plaster') {
+        intensity = 0.78 + broad * 0.12 + (noise - 0.5) * 0.12;
+        if (noise > 0.982) intensity *= 0.88;
+      } else if (kind === 'timber') {
+        const grain = 0.5 + 0.5 * Math.sin(v * 210 + Math.sin(u * 18) * 4 + noise * 2);
+        intensity = 0.78 + grain * 0.19 + (noise - 0.5) * 0.1;
+        if (Math.abs(Math.sin(v * 38 + u * 4)) > 0.985) intensity *= 0.72;
+      } else if (kind === 'stone') {
+        intensity = 0.72 + broad * 0.15 + (noise - 0.5) * 0.18;
+        if (noise > 0.985) intensity *= 0.72;
+      } else if (kind === 'roof') {
+        const row = Math.floor(v * 12);
+        const stagger = (row % 2) * 0.5;
+        const tileU = ((u * 12 + stagger) % 1);
+        const tileV = (v * 12) % 1;
+        const seam = tileU < 0.045 || tileU > 0.955 || tileV < 0.06 || tileV > 0.94;
+        intensity = seam ? 0.56 : 0.84 + fine * 0.16 + (noise - 0.5) * 0.12;
+      } else if (kind === 'ground') {
+        const patch = 0.5 + 0.5 * Math.sin(u * 17 + Math.sin(v * 12) * 2) * Math.cos(v * 21);
+        intensity = 0.7 + patch * 0.2 + (noise - 0.5) * 0.16;
+      }
+
+      const index = (y * size + x) * 4;
+      pixels[index] = Math.min(255, Math.max(0, base[kind][0] * intensity));
+      pixels[index + 1] = Math.min(255, Math.max(0, base[kind][1] * intensity));
+      pixels[index + 2] = Math.min(255, Math.max(0, base[kind][2] * intensity));
+      pixels[index + 3] = 255;
+    }
+  }
+
+  const texture = new THREE.DataTexture(pixels, size, size, THREE.RGBAFormat);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  texture.name = `Eterna_${kind}_surface_${seed}`;
+  return texture;
+}
+
 function createPalette(): EnvironmentPalette {
   return {
-    bark: new THREE.MeshStandardMaterial({ color: '#62442d', roughness: 0.94, vertexColors: true }),
-    barkLight: new THREE.MeshStandardMaterial({ color: '#876044', roughness: 0.92 }),
-    leaf: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.91, vertexColors: true }),
-    pine: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.94, vertexColors: true }),
-    plaster: new THREE.MeshStandardMaterial({ color: '#c0aa7e', roughness: 0.96 }),
-    timber: new THREE.MeshStandardMaterial({ color: '#50331f', roughness: 0.9 }),
-    stone: new THREE.MeshStandardMaterial({ color: '#8c8876', roughness: 0.98 }),
-    roof: new THREE.MeshStandardMaterial({ color: '#714235', roughness: 0.9 }),
-    roofAccent: new THREE.MeshStandardMaterial({ color: '#9a5b42', roughness: 0.88 }),
+    bark: new THREE.MeshStandardMaterial({ color: '#ffffff', map: surfaceTexture('bark', 11), roughness: 0.94, vertexColors: true }),
+    barkLight: new THREE.MeshStandardMaterial({ color: '#ffffff', map: surfaceTexture('timber', 13), roughness: 0.92 }),
+    leaf: new THREE.MeshStandardMaterial({ color: '#ffffff', map: surfaceTexture('leaf', 17), roughness: 0.91, vertexColors: true }),
+    pine: new THREE.MeshStandardMaterial({ color: '#ffffff', map: surfaceTexture('leaf', 19), roughness: 0.94, vertexColors: true }),
+    plaster: new THREE.MeshStandardMaterial({ color: '#ffffff', map: surfaceTexture('plaster', 23), roughness: 0.96 }),
+    timber: new THREE.MeshStandardMaterial({ color: '#ffffff', map: surfaceTexture('timber', 29), roughness: 0.9 }),
+    stone: new THREE.MeshStandardMaterial({ color: '#ffffff', map: surfaceTexture('stone', 31), roughness: 0.98 }),
+    roof: new THREE.MeshStandardMaterial({ color: '#ffffff', map: surfaceTexture('roof', 37), roughness: 0.9 }),
+    roofAccent: new THREE.MeshStandardMaterial({ color: '#ffffff', map: surfaceTexture('roof', 41), roughness: 0.88 }),
     iron: new THREE.MeshStandardMaterial({ color: '#59615d', metalness: 0.58, roughness: 0.48 }),
     glass: new THREE.MeshStandardMaterial({ color: '#4f7c80', emissive: '#1c3733', emissiveIntensity: 0.35, roughness: 0.3 }),
     warmGlow: new THREE.MeshStandardMaterial({ color: '#f4b957', emissive: '#ff9c36', emissiveIntensity: 2.2, roughness: 0.35 }),
@@ -33,6 +110,15 @@ function createPalette(): EnvironmentPalette {
 }
 
 const palette = createPalette();
+
+export function createGroundMaterial(): THREE.MeshStandardMaterial {
+  return new THREE.MeshStandardMaterial({
+    color: '#ffffff',
+    map: surfaceTexture('ground', 53),
+    roughness: 0.98,
+    vertexColors: true,
+  });
+}
 
 function addMesh(
   parent: THREE.Object3D,
@@ -63,6 +149,7 @@ function makeTrunkGeometry(seed: number, height: number, baseRadius: number, top
   const rings = 24;
   const positions: number[] = [];
   const colors: number[] = [];
+  const uvs: number[] = [];
   const indices: number[] = [];
   const dark = new THREE.Color('#453022');
   const mid = new THREE.Color('#704c32');
@@ -86,6 +173,7 @@ function makeTrunkGeometry(seed: number, height: number, baseRadius: number, top
       const vertical = THREE.MathUtils.smoothstep(t, 0.05, 0.72) * 0.18;
       const color = dark.clone().lerp(mid, 0.42 + stripe * 0.35 + vertical).lerp(light, Math.max(0, grain) * 1.8);
       colors.push(color.r, color.g, color.b);
+      uvs.push(side / radial, t * 2.4);
     }
   }
 
@@ -100,6 +188,7 @@ function makeTrunkGeometry(seed: number, height: number, baseRadius: number, top
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
@@ -113,7 +202,9 @@ function makeCanopyGeometry(seed: number, narrow = false): THREE.BufferGeometry 
   const sourceIndex = source.getIndex();
   const positions: number[] = [];
   const colors: number[] = [];
+  const uvs: number[] = [];
   const indices: number[] = [];
+  const sourceUvs = source.getAttribute('uv');
   const deep = new THREE.Color('#274d30');
   const forest = new THREE.Color('#3e6b3b');
   const sunlit = new THREE.Color('#75964d');
@@ -144,6 +235,7 @@ function makeCanopyGeometry(seed: number, narrow = false): THREE.BufferGeometry 
       const upward = THREE.MathUtils.clamp(sourcePositions.getY(i) * 0.55 + 0.45 + random() * 0.12, 0, 1);
       const color = deep.clone().lerp(forest, 0.45 + random() * 0.25).lerp(sunlit, upward * 0.46);
       colors.push(color.r, color.g, color.b);
+      uvs.push(sourceUvs.getX(i), sourceUvs.getY(i));
     }
 
     if (sourceIndex) {
@@ -154,6 +246,7 @@ function makeCanopyGeometry(seed: number, narrow = false): THREE.BufferGeometry 
   source.dispose();
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
@@ -282,6 +375,7 @@ export function createWillowmereCottage(seed = 311): THREE.Group {
     -3.68, 4.58, -2.98, 3.68, 4.58, -2.98, 0, 6.55, -2.98,
     3.68, 4.58, 2.98, -3.68, 4.58, 2.98, 0, 6.55, 2.98,
   ], 3));
+  gable.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0.5, 1, 1, 0, 0, 0, 0.5, 1], 2));
   gable.setIndex([0, 1, 2, 3, 4, 5]);
   gable.computeVertexNormals();
   addMesh(house, gable, palette.plaster);
