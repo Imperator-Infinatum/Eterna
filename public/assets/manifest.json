@@ -74,6 +74,17 @@
       "status": "approved",
       "authoringPath": "src/assets/environment.ts#createMossyBoulder",
       "attribution": "Original Eterna model authored for this project"
+    },
+    {
+      "id": "eterna.materials.willowmere.surface-library.01",
+      "name": "Willowmere Stylized Surface Library",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/environment.ts#surfaceTexture",
+      "attribution": "Original Eterna procedural texture maps authored for this project",
+      "notes": "Deterministic 256px DataTexture maps for bark, foliage, plaster, timber, stone, roof tiles and ground. UV mapped and generated locally at runtime."
     }
   ],
   "externalCandidates": [
