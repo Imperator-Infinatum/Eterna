@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "project": "Eterna",
+  "assets": [
+    {
+      "id": "eterna.environment.willowmere.oak.01",
+      "name": "Willowmere Broadleaf Oak",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/environment.ts#createOakTree",
+      "attribution": "Original Eterna model authored for this project",
+      "notes": "Curved tapered trunk, instanced roots and branches, layered vertex-colour canopy."
+    },
+    {
+      "id": "eterna.environment.willowmere.spruce.01",
+      "name": "Willowmere Spruce",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/environment.ts#createSpruceTree",
+      "attribution": "Original Eterna model authored for this project",
+      "notes": "Narrow layered canopy and tapered bark profile."
+    },
+    {
+      "id": "eterna.environment.willowmere.cottage.01",
+      "name": "Willowmere Timber Cottage",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/environment.ts#createWillowmereCottage",
+      "attribution": "Original Eterna model authored for this project",
+      "notes": "Timber framing, stone foundation, instanced roof shingles, glass windows, shutters and lantern."
+    },
+    {
+      "id": "eterna.environment.willowmere.well.01",
+      "name": "Willowmere Village Well",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/environment.ts#createVillageWell",
+      "attribution": "Original Eterna model authored for this project"
+    },
+    {
+      "id": "eterna.environment.willowmere.fence.01",
+      "name": "Willowmere Split-Rail Fence",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/environment.ts#createFenceRun",
+      "attribution": "Original Eterna model authored for this project"
+    },
+    {
+      "id": "eterna.environment.willowmere.lantern-post.01",
+      "name": "Willowmere Road Lantern",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/environment.ts#createLanternPost",
+      "attribution": "Original Eterna model authored for this project"
+    },
+    {
+      "id": "eterna.environment.willowmere.mossy-boulder.01",
+      "name": "Mossy Field Boulder",
+      "kind": "procedural",
+      "creator": "Eterna project",
+      "licence": "Original Eterna project content",
+      "status": "approved",
+      "authoringPath": "src/assets/environment.ts#createMossyBoulder",
+      "attribution": "Original Eterna model authored for this project"
+    }
+  ],
+  "externalCandidates": [
+    {
+      "id": "candidate.quaternius.medieval-village",
+      "name": "Quaternius Medieval Village Pack",
+      "kind": "external",
+      "creator": "Quaternius",
+      "licence": "CC0 1.0",
+      "status": "candidate",
+      "sourceUrl": "https://quaternius.com/packs/medievalvillage.html",
+      "attribution": "Quaternius (credit appreciated)",
+      "notes": "44 models, FBX/OBJ/Blend. Strong modular prop source; the original pack is deliberately low-poly, so review individual meshes before adopting."
+    },
+    {
+      "id": "candidate.kenney.fantasy-town",
+      "name": "Kenney Fantasy Town Kit",
+      "kind": "external",
+      "creator": "Kenney",
+      "licence": "CC0 1.0",
+      "status": "candidate",
+      "sourceUrl": "https://kenney.nl/assets/fantasy-town-kit",
+      "attribution": "Kenney (credit appreciated)",
+      "notes": "160 pieces, version 2.0 described as completely remade. Review silhouettes and material density before adoption."
+    },
+    {
+      "id": "candidate.polyhaven.materials",
+      "name": "Poly Haven Materials and HDRIs",
+      "kind": "external",
+      "creator": "Poly Haven and credited contributors",
+      "licence": "CC0 1.0",
+      "status": "candidate",
+      "sourceUrl": "https://polyhaven.com/license",
+      "attribution": "Attribution not required; credit appreciated",
+      "notes": "Preferred source for selected PBR surface maps and lighting references. Use stylized material response and palette treatment in Eterna."
+    },
+    {
+      "id": "candidate.kaylousberg.forest-nature",
+      "name": "Kay Lousberg Forest Nature Pack",
+      "kind": "external",
+      "creator": "Kay Lousberg",
+      "licence": "CC0 1.0 (verify exact included pack terms on download)",
+      "status": "candidate",
+      "sourceUrl": "https://kaylousberg.com/game-assets/forest-nature-pack",
+      "attribution": "Attribution not required; credit appreciated",
+      "notes": "Large vegetation library. Useful for background dressing if individual model silhouettes meet the Eterna art target."
+    }
+  ]
+}

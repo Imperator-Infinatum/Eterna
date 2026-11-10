@@ -1,5 +1,12 @@
 import * as THREE from 'three';
 import './style.css';
+import { loadAssetManifest } from './assets/asset-loader';
+
+void loadAssetManifest().then((manifest) => {
+  console.info('[Eterna] Asset registry ready:', manifest.assets.length, 'approved project assets;', manifest.externalCandidates.length, 'researched external candidates.');
+}).catch((error: unknown) => {
+  console.warn('[Eterna] Asset registry could not be loaded:', error);
+});
 import {FollowCamera} from './game/camera';
 import {PointClickControls} from './game/controls';
 import {createHero} from './game/hero';
