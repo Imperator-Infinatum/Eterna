@@ -88,3 +88,15 @@ The Quaternius Stylized Nature MegaKit is a researched CC0 candidate for selecti
 
 ## Stand composition and terrain
 The current Willowmere layout uses six seeded forest stands with species bias and open glades. The road, village footprint, Mirror Pool edge and spawn area are explicit exclusion zones. Tree templates are generated from several seeds and reused as instances to keep mesh authoring cost out of the per-tree placement loop. Terrain uses broad rolling forms plus lower-amplitude cross-slope and local undulation; all scatter positions sample the same height function used by the terrain mesh.
+
+
+## 0.3.2 visibility repair
+The first 0.3.1 gameplay capture showed that tree crowns were reading as isolated shrubs and the grass as thin spikes. The diagnosis and repair focus on visual distribution and silhouette:
+- Allocate the fixed leaf instance budget evenly to every branch/crown anchor rather than allowing early lower branches to consume the budget.
+- Add leaf anchors along secondary limbs and primary crown branches.
+- Increase broadleaf leaf size/spread and gameplay-scale trunk/root/branch radii.
+- Raise SDF extraction resolution to preserve fine secondary limbs and recompute smooth surface normals from the final indexed mesh.
+- Render bark double-sided and retain the bark map/vertex colour, with stronger brown values and mesh statistics for diagnosing empty or unexpectedly sparse surfaces.
+- Build each instanced grass tuft from three crossed curved ribbons, with higher patch density.
+
+The next browser acceptance capture must show a visible continuous trunk, branch unions and root flares, plus a full readable canopy at gameplay distance. Do not mark visual acceptance based on a successful TypeScript/Vite build alone.

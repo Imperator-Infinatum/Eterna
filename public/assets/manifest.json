@@ -11,7 +11,7 @@
       "status": "approved",
       "authoringPath": "src/assets/organic-trees.ts#createOakTree",
       "attribution": "Original Eterna mesh authored for this project",
-      "notes": "One continuous smooth-union SDF/marching-tetrahedra bark surface containing trunk, irregular primary/secondary/tertiary branches and buttress roots; individual instanced curved broadleaf meshes."
+      "notes": "One continuous smooth-union SDF/marching-tetrahedra bark surface containing trunk, irregular primary/secondary/tertiary branches and buttress roots; stronger gameplay-scale trunk/branch radii; evenly distributed instanced curved broadleaf meshes across all canopy anchor tiers; bark mesh vertex/triangle diagnostics."
     },
     {
       "id": "eterna.vegetation.willowmere.organic-spruce",
@@ -22,7 +22,7 @@
       "status": "approved",
       "authoringPath": "src/assets/organic-trees.ts#createSpruceTree",
       "attribution": "Original Eterna mesh authored for this project",
-      "notes": "Continuous trunk/branch/root surface with irregular whorl heights, variable branch length and drooping secondary limbs; individual tapered needle meshes."
+      "notes": "Continuous trunk/branch/root surface with irregular whorl heights, variable branch length and drooping secondary limbs; individual tapered needle meshes; bark mesh vertex/triangle diagnostics."
     },
     {
       "id": "eterna.environment.willowmere.cottage.01",
@@ -95,7 +95,7 @@
       "status": "approved",
       "authoringPath": "src/assets/understory.ts#createUnderstory",
       "attribution": "Original Eterna vegetation mesh authored for this project",
-      "notes": "Three curved, tapered 3D blade meshes, patch-distributed and instanced with per-instance tint variation and shader wind."
+      "notes": "Three curved, crossed-ribbon 3D tuft geometries, patch-distributed at higher density and instanced with per-instance tint variation and shader wind."
     },
     {
       "id": "eterna.vegetation.willowmere.woodland-ferns",

@@ -520,8 +520,9 @@ export function createOrganicBarkMaterial(): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({
     color: '#ffffff',
     map: surfaceTexture('bark', 79),
-    roughness: 0.95,
+    roughness: 0.92,
     vertexColors: true,
+    side: THREE.DoubleSide,
   });
 }
 
