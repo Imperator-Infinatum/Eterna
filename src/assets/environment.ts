@@ -149,6 +149,7 @@ function makeTrunkGeometry(seed: number, height: number, baseRadius: number, top
   const rings = 24;
   const positions: number[] = [];
   const colors: number[] = [];
+  const uvs: number[] = [];
   const indices: number[] = [];
   const dark = new THREE.Color('#453022');
   const mid = new THREE.Color('#704c32');
@@ -172,6 +173,7 @@ function makeTrunkGeometry(seed: number, height: number, baseRadius: number, top
       const vertical = THREE.MathUtils.smoothstep(t, 0.05, 0.72) * 0.18;
       const color = dark.clone().lerp(mid, 0.42 + stripe * 0.35 + vertical).lerp(light, Math.max(0, grain) * 1.8);
       colors.push(color.r, color.g, color.b);
+      uvs.push(side / radial, t * 2.4);
     }
   }
 
@@ -186,6 +188,7 @@ function makeTrunkGeometry(seed: number, height: number, baseRadius: number, top
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
@@ -199,7 +202,9 @@ function makeCanopyGeometry(seed: number, narrow = false): THREE.BufferGeometry 
   const sourceIndex = source.getIndex();
   const positions: number[] = [];
   const colors: number[] = [];
+  const uvs: number[] = [];
   const indices: number[] = [];
+  const sourceUvs = source.getAttribute('uv');
   const deep = new THREE.Color('#274d30');
   const forest = new THREE.Color('#3e6b3b');
   const sunlit = new THREE.Color('#75964d');
@@ -230,6 +235,7 @@ function makeCanopyGeometry(seed: number, narrow = false): THREE.BufferGeometry 
       const upward = THREE.MathUtils.clamp(sourcePositions.getY(i) * 0.55 + 0.45 + random() * 0.12, 0, 1);
       const color = deep.clone().lerp(forest, 0.45 + random() * 0.25).lerp(sunlit, upward * 0.46);
       colors.push(color.r, color.g, color.b);
+      uvs.push(sourceUvs.getX(i), sourceUvs.getY(i));
     }
 
     if (sourceIndex) {
@@ -240,6 +246,7 @@ function makeCanopyGeometry(seed: number, narrow = false): THREE.BufferGeometry 
   source.dispose();
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
@@ -368,6 +375,7 @@ export function createWillowmereCottage(seed = 311): THREE.Group {
     -3.68, 4.58, -2.98, 3.68, 4.58, -2.98, 0, 6.55, -2.98,
     3.68, 4.58, 2.98, -3.68, 4.58, 2.98, 0, 6.55, 2.98,
   ], 3));
+  gable.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0.5, 1, 1, 0, 0, 0, 0.5, 1], 2));
   gable.setIndex([0, 1, 2, 3, 4, 5]);
   gable.computeVertexNormals();
   addMesh(house, gable, palette.plaster);
