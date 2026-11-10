@@ -31,8 +31,6 @@ interface OrganicTreeOptions {
   leafCount: number;
 }
 
-const UP = new THREE.Vector3(0, 1, 0);
-
 class Random {
   private state: number;
   constructor(seed: number) { this.state = seed >>> 0; }
