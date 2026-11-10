@@ -23,9 +23,11 @@ function randomSource(seed: number): () => number {
 }
 
 export function terrainHeight(x: number, z: number): number {
-  return 0.22 * Math.sin(x * 0.105) * Math.cos(z * 0.09)
-    + 0.12 * Math.sin(z * 0.19 + x * 0.07)
-    + 0.055 * Math.cos(x * 0.31 - z * 0.18);
+  const broadRoll = 0.28 * Math.sin(x * 0.061 + 1.1) * Math.cos(z * 0.057 - 0.7);
+  const crossSlope = 0.14 * Math.sin(z * 0.13 + x * 0.047);
+  const localRise = 0.075 * Math.cos(x * 0.27 - z * 0.22) + 0.032 * Math.sin(x * 0.61 + z * 0.43);
+  const groundUndulation = 0.018 * Math.sin(x * 1.13 - z * 0.91) * Math.cos(z * 0.77);
+  return broadRoll + crossSlope + localRise + groundUndulation;
 }
 
 function makeTerrain(): THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial> {
@@ -216,38 +218,57 @@ async function placeVegetation(
   const windTrees: THREE.Object3D[] = [];
   // Each seed changes the growth skeleton, root spread, limb origins, branch angles and crown envelope.
   const oakTemplates: THREE.Group[] = [];
-  const oakSeeds = [101, 173, 251];
+  const oakSeeds = [101, 173, 251, 311];
   for (let i = 0; i < oakSeeds.length; i++) {
     onProgress?.(0.12 + i * 0.11, 'Sculpting broadleaf oak ' + (i + 1) + ' of ' + oakSeeds.length);
     await yieldToBrowser();
     oakTemplates.push(createOakTree(oakSeeds[i]));
   }
   const spruceTemplates: THREE.Group[] = [];
-  const spruceSeeds = [203, 277];
+  const spruceSeeds = [203, 277, 331];
   for (let i = 0; i < spruceSeeds.length; i++) {
     onProgress?.(0.47 + i * 0.11, 'Growing spruce architecture ' + (i + 1) + ' of ' + spruceSeeds.length);
     await yieldToBrowser();
     spruceTemplates.push(createSpruceTree(spruceSeeds[i]));
   }
+
+  // Forest is arranged as several irregular stands with open glades between them.
+  // Spruce-rich patches sit on the cooler outer margins; broadleaf stands frame the road.
+  const forestPatches = [
+    { x: -31, z: -1, radius: 12.5, spruceChance: 0.23 },
+    { x: 31, z: 3, radius: 13.5, spruceChance: 0.38 },
+    { x: -30, z: 31, radius: 12.0, spruceChance: 0.32 },
+    { x: 31, z: 32, radius: 13.0, spruceChance: 0.62 },
+    { x: -32, z: -35, radius: 11.0, spruceChance: 0.66 },
+    { x: 32, z: -35, radius: 11.5, spruceChance: 0.78 },
+  ];
+
   let placed = 0;
   let attempts = 0;
-
-  while (placed < 54 && attempts < 700) {
+  while (placed < 72 && attempts < 1000) {
     attempts++;
-    const x = random() * 88 - 44;
-    const z = random() * 88 - 44;
+    const patch = forestPatches[Math.floor(random() * forestPatches.length)];
+    const angle = random() * Math.PI * 2;
+    const radius = Math.sqrt(random()) * patch.radius;
+    const x = patch.x + Math.cos(angle) * radius;
+    const z = patch.z + Math.sin(angle) * radius;
     const roadCenter = 0.1 + z * -0.055;
     const roadClear = Math.abs(x - roadCenter) < 5.2;
     const villageClear = x > -19 && x < 22 && z > -40 && z < -10;
     const pondClear = Math.hypot(x + 20.5, z + 13.4) < 10.7;
     const spawnClear = Math.hypot(x, z) < 6.4;
-    if (roadClear || villageClear || pondClear || spawnClear) continue;
+    const treeSpacingClear = windTrees.every((tree) => {
+      const dx = x - tree.position.x;
+      const dz = z - tree.position.z;
+      return dx * dx + dz * dz > 11.5;
+    });
+    if (roadClear || villageClear || pondClear || spawnClear || !treeSpacingClear) continue;
 
     const edge = Math.max(Math.abs(x), Math.abs(z));
-    const useSpruce = random() > 0.64 || edge > 38;
+    const useSpruce = random() < patch.spruceChance || edge > 41;
     const templates = useSpruce ? spruceTemplates : oakTemplates;
     const template = templates[Math.floor(random() * templates.length)];
-    const scale = useSpruce ? random() * 0.28 + 0.8 : random() * 0.34 + 0.78;
+    const scale = useSpruce ? random() * 0.34 + 0.78 : random() * 0.42 + 0.76;
     const rotation = random() * Math.PI * 2;
     const instance = addAssetAt(scene, template, x, z, scale, rotation);
     instance.userData.windPhase = random() * Math.PI * 2;

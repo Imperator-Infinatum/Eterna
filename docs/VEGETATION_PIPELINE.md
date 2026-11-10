@@ -84,3 +84,7 @@ The Quaternius Stylized Nature MegaKit is a researched CC0 candidate for selecti
 - WoW Elwynn Forest environment composition: https://gamer-guides.com/wow-hardcore/elwynn-forest/
 - Warcraft III tree shape and texture variation discussion: https://www.hiveworkshop.com/threads/how-to-change-textures-on-a-tree-or-other-doodad-without-importing-several-models.222212/
 - Quaternius Stylized Nature MegaKit (116 CC0 models): https://quaternius.itch.io/stylized-nature-megakit
+
+
+## Stand composition and terrain
+The current Willowmere layout uses six seeded forest stands with species bias and open glades. The road, village footprint, Mirror Pool edge and spawn area are explicit exclusion zones. Tree templates are generated from several seeds and reused as instances to keep mesh authoring cost out of the per-tree placement loop. Terrain uses broad rolling forms plus lower-amplitude cross-slope and local undulation; all scatter positions sample the same height function used by the terrain mesh.
