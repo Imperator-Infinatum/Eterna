@@ -1,7 +1,7 @@
 {
   "name": "eterna",
   "private": true,
-  "version": "0.3.2",
+  "version": "0.3.3",
   "type": "module",
   "description": "Eterna — an original browser-based fantasy RPG.",
   "engines": {
